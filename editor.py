@@ -30,7 +30,7 @@ class Editor:
         self.tilemap = Tilemap(self, tile_size=16)  # Initialize the tilemap with a tile size of 16x16
 
         try:
-            self.tilemap.load('data/maps/8.json')  # Load the saved map if available
+            self.tilemap.load('data/maps/7.json')  # Load the saved map if available
         except FileNotFoundError:
             pass  # No map file found, continue without loading
 
@@ -154,7 +154,7 @@ class Editor:
                         self.tilemap.autotile()
                     # Save the map
                     if event.key == pygame.K_o:
-                        self.tilemap.save('data/maps/8.json')
+                        self.tilemap.save('data/maps/7.json')
                     # Enable shift for changing tile variants
                     if event.key == pygame.K_LSHIFT:
                         self.shift = True
