@@ -35,3 +35,10 @@ class Animation:
 
     def img(self):
         return self.images[int(self.frame / self.img_duration)]
+
+#todo camera move where mouse moves
+#todo enhance pause menu
+#todo add spikes
+#todo variable jump height based on duration of hold
+#todo 1 hit shield
+#todo enemies left counter

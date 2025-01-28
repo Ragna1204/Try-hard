@@ -1,6 +1,5 @@
 import math
 import random
-
 import pygame
 
 from scripts.particle import Particle
