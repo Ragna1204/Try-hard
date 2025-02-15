@@ -94,19 +94,34 @@ class Game:
             "max_level": self.max_level,
             "death_counter": self.death_counter,
         }
-        with open("savefile.json", "w") as save_file:
-            json.dump(state, save_file)
+        try:
+            with open("savefile.json", "w") as save_file:
+                json.dump(state, save_file)
+        except Exception as e:
+            print(f"Error saving game state: {e}")
 
     def load_game_state(self):
         """Load the game state from a file."""
         if os.path.exists("savefile.json"):
-            with open("savefile.json", "r") as save_file:
-                state = json.load(save_file)
-                self.level = state.get("level", 1)
-                self.max_level = state.get("max_level", 1)
-                self.death_counter = state.get("death_counter", 0)
+            try:
+                with open("savefile.json", "r") as save_file:
+                    state = json.load(save_file)
+                    self.level = state.get("level", 1)
+                    self.max_level = state.get("max_level", 1)
+                    self.death_counter = state.get("death_counter", 0)
+            except (json.JSONDecodeError, FileNotFoundError):
+                print("Failed to load game state, using default values.")
+                self.level = 1
+                self.max_level = 1
+                self.death_counter = 0
+
+        else:
+            self.level = 1
+            self.max_level = 1
+            self.death_counter = 0
 
     def load_level(self, map_id):
+        """Load a level and reset relevant game states."""
         self.dead = 0  # Reset death sequence
         self.transition = 0  # Reset transition
         self.level = map_id
@@ -132,6 +147,9 @@ class Game:
         self.scroll = [0, 0]
         self.dead = 0
         self.transition = -30
+
+        # Save progress when a new level is loaded
+        self.save_game_state()
 
     def toggle_fullscreen(self):
         # Toggle between fullscreen and windowed mode
