@@ -149,18 +149,18 @@ class Game:
         self.transition = -30
 
         # Save progress when a new level is loaded
+        self.death_counter = getattr(self, "death_counter", 0)
         self.save_game_state()
 
     def toggle_fullscreen(self):
-        # Toggle between fullscreen and windowed mode
-        if self.is_fullscreen:
-            self.screen = pygame.display.set_mode((640, 480))
-            self.display = pygame.Surface((320, 240), pygame.SRCALPHA)
-        else:
-            self.screen = pygame.display.set_mode((640, 480), pygame.FULLSCREEN)
-            self.display = pygame.Surface((self.screen.get_width() // 2, self.screen.get_height() // 2), pygame.SRCALPHA)
-
         self.is_fullscreen = not self.is_fullscreen
+        if self.is_fullscreen:
+            self.screen = pygame.display.set_mode((640, 480), pygame.FULLSCREEN)
+        else:
+            self.screen = pygame.display.set_mode((640, 480))
+
+        self.display = pygame.Surface((320, 240), pygame.SRCALPHA)
+        self.display_2 = pygame.Surface((320, 240))
     def run(self):
         pygame.mixer.music.load('data/music.wav')
         pygame.mixer.music.set_volume(0.5)
