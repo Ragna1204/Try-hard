@@ -171,9 +171,50 @@ class Game:
         try:
             while True:
                 self.display.fill((0, 0, 0, 0))
+                
+                # Calculate camera scroll first
+                self.scroll[0] += (self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) / 30
+                self.scroll[1] += (self.player.rect().centery - self.display.get_height() / 2 - self.scroll[1]) / 30
+                render_scroll = (int(self.scroll[0]), int(self.scroll[1]))
+                
+                # Render background layers with parallax effect and proper tiling
+                # Each layer moves at different speeds to create depth
+                parallax_factors = [0.05, 0.1, 0.2, 0.35, 0.5, 0.65]  # Adjusted for 6 layers
+                
                 for index, layer in enumerate(self.assets['background_layers']):
-                    layer_scroll = (0, 0)
-                    self.display_2.blit(layer, layer_scroll)
+                    if index < len(parallax_factors):
+                        # Calculate parallax offset for horizontal scrolling only
+                        parallax_x = render_scroll[0] * parallax_factors[index]
+                        
+                        # Get layer dimensions
+                        layer_width = layer.get_width()
+                        layer_height = layer.get_height()
+                        
+                        # Scale the background to fit screen height if needed
+                        screen_height = self.display_2.get_height()
+                        if layer_height < screen_height:
+                            # Scale layer to fit screen height
+                            scale_factor = screen_height / layer_height
+                            scaled_layer = pygame.transform.scale(layer, (int(layer_width * scale_factor), screen_height))
+                            layer_width = scaled_layer.get_width()
+                        else:
+                            scaled_layer = layer
+                        
+                        # Calculate how many horizontal tiles we need
+                        tiles_x = (self.display_2.get_width() // layer_width) + 3
+                        
+                        # Wrap the horizontal parallax offset for seamless tiling
+                        offset_x = -(parallax_x % layer_width)
+                        
+                        # Draw horizontally tiled background (no vertical tiling)
+                        for tile_x in range(-1, tiles_x):
+                            pos_x = offset_x + tile_x * layer_width
+                            pos_y = 0  # Always start at top of screen
+                            self.display_2.blit(scaled_layer, (pos_x, pos_y))
+                    else:
+                        # Fallback for extra layers - stretch to fit screen
+                        scaled_layer = pygame.transform.scale(layer, (self.display_2.get_width(), self.display_2.get_height()))
+                        self.display_2.blit(scaled_layer, (0, 0))
 
                 self.screenshake = max(0, self.screenshake - 1)
 
@@ -192,10 +233,6 @@ class Game:
                         self.transition = min(30, self.transition + 1)
                     if self.dead > 40:
                         self.load_level(self.level)
-
-                self.scroll[0] += (self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) / 30
-                self.scroll[1] += (self.player.rect().centery - self.display.get_height() / 2 - self.scroll[1]) / 30
-                render_scroll = (int(self.scroll[0]), int(self.scroll[1]))
 
                 for rect in self.leaf_spawners:
                     if random.random() * 49999 < rect.width * rect.height:
