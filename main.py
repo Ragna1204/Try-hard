@@ -11,6 +11,7 @@ from scripts.clouds import Clouds
 from scripts.particle import Particle
 from scripts.spark import Spark
 from scripts.pause import pause_menu, options_menu, levels_menu
+from scripts.main_menu import main_menu
 
 
 class Game:
@@ -86,6 +87,11 @@ class Game:
 
         self.death_counter = 0  # Initialize death counter
         self.dead = 0
+        
+        # Game state management
+        self.game_state = "menu"  # menu, playing, paused
+        self.show_menu = True
+
 
     def save_game_state(self):
         """Save the game state to a file."""
@@ -161,6 +167,34 @@ class Game:
 
         self.display = pygame.Surface((320, 240), pygame.SRCALPHA)
         self.display_2 = pygame.Surface((320, 240))
+    
+    def handle_menu_action(self, action):
+        """Handle menu actions and return True if game should continue"""
+        if action == "exit":
+            return False
+        elif action == "start_game":
+            self.game_state = "playing"
+            self.show_menu = False
+            self.load_level(self.level)
+        elif action == "load_game":
+            self.load_game_state()
+            self.game_state = "playing"
+            self.show_menu = False
+            self.load_level(self.level)
+        elif action == "level_select":
+            selected_level = levels_menu(self.screen, self.clock, self.level, self.max_level)
+            if selected_level != self.level:
+                self.level = selected_level
+                self.game_state = "playing"
+                self.show_menu = False
+                self.load_level(self.level)
+        elif action == "options":
+            options_menu(self.screen, self.clock, self.level, self.max_level)
+        elif action == "about":
+            # You can implement an about menu here
+            pass
+        return True
+    
     def run(self):
         pygame.mixer.music.load('data/music.wav')
         pygame.mixer.music.set_volume(0.5)
@@ -170,6 +204,12 @@ class Game:
 
         try:
             while True:
+                # Show main menu if needed
+                if self.show_menu:
+                    action = main_menu(self.screen, self.clock, self.assets, self.sfx)
+                    if not self.handle_menu_action(action):
+                        break
+                    continue
                 self.display.fill((0, 0, 0, 0))
                 
                 # Calculate camera scroll first
@@ -331,7 +371,10 @@ class Game:
                             self.player.dash()
                         if event.key == pygame.K_ESCAPE:
                             selected_level = pause_menu(self.screen, self.clock, self.level, self.max_level)
-                            if selected_level != self.level:
+                            if selected_level == "menu":
+                                self.show_menu = True
+                                self.game_state = "menu"
+                            elif selected_level != self.level:
                                 self.load_level(selected_level)
 
                     if event.type == pygame.KEYUP:
@@ -339,6 +382,8 @@ class Game:
                             self.movement[0] = False
                         if event.key == pygame.K_d:
                             self.movement[1] = False
+                        if event.key == pygame.K_SPACE:
+                            self.player.cut_jump()
 
                 if self.transition:
                     transition_surf = pygame.Surface(self.display.get_size())

@@ -144,6 +144,7 @@ class Player(PhysicsEntity):
         self.jumps = 1
         self.wall_slide = False
         self.dashing = 0
+        self.is_jumping = False
         self.speed_multiplier = 1.05  # Set a speed multiplier for the player
 
     def update(self, tilemap, movement=(0, 0)):
@@ -153,6 +154,7 @@ class Player(PhysicsEntity):
         if self.collisions['down']:
             self.air_time = 0
             self.jumps = 1
+            self.is_jumping = False
         elif self.wall_slide:
             # Do not increment airtime if wall sliding
             pass
@@ -163,11 +165,6 @@ class Player(PhysicsEntity):
             if not self.game.dead:
                 self.game.screenshake = max(16, self.game.screenshake)
             self.game.dead += 1
-
-
-        if self.collisions['down']:
-            self.air_time = 0
-            self.jumps = 1
 
         self.wall_slide = False
         if (self.collisions['right'] or self.collisions['left']) and self.air_time > 4:
@@ -213,6 +210,10 @@ class Player(PhysicsEntity):
         if abs(self.dashing) <= 50:
             super().render(surf, offset=offset)
 
+    def cut_jump(self):
+        if self.is_jumping and self.velocity[1] < 0:
+            self.velocity[1] *= 0.5
+
     def jump(self):
         if self.wall_slide:
             if self.flip and self.last_movement[0] < 0:
@@ -232,6 +233,7 @@ class Player(PhysicsEntity):
             self.velocity[1] = -3
             self.jumps -= 1
             self.air_time = 5
+            self.is_jumping = True
             return True
 
     def dash(self):

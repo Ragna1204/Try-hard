@@ -210,7 +210,7 @@ def about_menu(screen, clock):
 def pause_menu(screen, clock, current_level, max_level):
     font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 20)
     title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 48)
-    menu_items = ["Resume", "Options", "Levels", "About", "Exit"]
+    menu_items = ["Resume", "Main Menu", "Options", "Levels", "About", "Exit"]
     selected_item = 0
 
     while True:
@@ -246,13 +246,15 @@ def pause_menu(screen, clock, current_level, max_level):
                     click_sound.play()
                     if selected_item == 0:  # Resume
                         return current_level
-                    elif selected_item == 1:  # Options
+                    elif selected_item == 1:  # Main Menu
+                        return "menu"
+                    elif selected_item == 2:  # Options
                         return options_menu(screen, clock, current_level, max_level)
-                    elif selected_item == 2:  # Levels
+                    elif selected_item == 3:  # Levels
                         return levels_menu(screen, clock, current_level, max_level)
-                    elif selected_item == 3:  # About
+                    elif selected_item == 4:  # About
                         about_menu(screen, clock)
-                    elif selected_item == 4:  # Exit
+                    elif selected_item == 5:  # Exit
                         pygame.quit()
                         sys.exit()
                 elif event.key == pygame.K_ESCAPE:  # Escape to resume game
