@@ -3,6 +3,7 @@ import sys
 import math
 import random
 import json
+from scripts.shared_background import SharedBackground
 
 pygame.init()
 pygame.mixer.init()
@@ -11,7 +12,7 @@ click_sound = pygame.mixer.Sound('data/menu.wav')
 click_sound.set_volume(0.2)
 
 class MainMenu:
-    def __init__(self, screen, clock, assets, sfx):
+    def __init__(self, screen, clock, assets, sfx, shared_background=None):
         self.screen = screen
         self.clock = clock
         self.assets = assets
@@ -25,19 +26,14 @@ class MainMenu:
         
         # Menu state
         self.selected_item = 0
-        self.menu_items = ["Start Game", "Load Game", "Level Select", "Options", "About", "Exit"]
+        self.menu_items = ["Start Game", "Options", "About", "Exit"]
         
         # Animation variables
         self.title_glow = 0
         self.menu_animation = 0
-        self.background_scroll = 0
         
-        # Particle effects for menu
-        self.menu_particles = []
-        self.spark_effects = []
-        
-        # Initialize menu particles
-        self.init_menu_particles()
+        # Shared background
+        self.shared_background = shared_background or SharedBackground(assets)
         
         # Load game state for display
         self.load_game_state()
@@ -55,88 +51,6 @@ class MainMenu:
             self.max_level = 1
             self.death_count = 0
     
-    def init_menu_particles(self):
-        """Initialize particle effects for the menu"""
-        # Create floating particles
-        for i in range(20):
-            particle = {
-                'pos': [random.random() * 320, random.random() * 240],
-                'velocity': [random.random() * 0.5 - 0.25, random.random() * 0.5 - 0.25],
-                'size': random.randint(1, 3),
-                'alpha': random.randint(50, 150),
-                'life': random.randint(100, 300)
-            }
-            self.menu_particles.append(particle)
-    
-    def update_particles(self):
-        """Update particle effects"""
-        for particle in self.menu_particles:
-            particle['pos'][0] += particle['velocity'][0]
-            particle['pos'][1] += particle['velocity'][1]
-            particle['life'] -= 1
-            
-            # Wrap particles around screen
-            if particle['pos'][0] < 0:
-                particle['pos'][0] = 320
-            elif particle['pos'][0] > 320:
-                particle['pos'][0] = 0
-            if particle['pos'][1] < 0:
-                particle['pos'][1] = 240
-            elif particle['pos'][1] > 240:
-                particle['pos'][1] = 0
-            
-            # Respawn particles
-            if particle['life'] <= 0:
-                particle['pos'] = [random.random() * 320, random.random() * 240]
-                particle['life'] = random.randint(100, 300)
-    
-    def render_background(self, display_2):
-        """Render animated background with parallax effect"""
-        # Animate background scroll
-        self.background_scroll += 0.2
-        
-        # Render background layers with parallax
-        parallax_factors = [0.05, 0.1, 0.2, 0.35, 0.5, 0.65]
-        
-        for index, layer in enumerate(self.assets['background_layers']):
-            if index < len(parallax_factors):
-                parallax_x = self.background_scroll * parallax_factors[index]
-                
-                # Get layer dimensions
-                layer_width = layer.get_width()
-                layer_height = layer.get_height()
-                
-                # Scale the background to fit screen height if needed
-                screen_height = display_2.get_height()
-                if layer_height < screen_height:
-                    scale_factor = screen_height / layer_height
-                    scaled_layer = pygame.transform.scale(layer, (int(layer_width * scale_factor), screen_height))
-                    layer_width = scaled_layer.get_width()
-                else:
-                    scaled_layer = layer
-                
-                # Calculate how many horizontal tiles we need
-                tiles_x = (display_2.get_width() // layer_width) + 3
-                
-                # Wrap the horizontal parallax offset for seamless tiling
-                offset_x = -(parallax_x % layer_width)
-                
-                # Draw horizontally tiled background
-                for tile_x in range(-1, tiles_x):
-                    pos_x = offset_x + tile_x * layer_width
-                    pos_y = 0
-                    display_2.blit(scaled_layer, (pos_x, pos_y))
-            else:
-                # Fallback for extra layers
-                scaled_layer = pygame.transform.scale(layer, (display_2.get_width(), display_2.get_height()))
-                display_2.blit(scaled_layer, (0, 0))
-    
-    def render_particles(self, display):
-        """Render menu particle effects"""
-        for particle in self.menu_particles:
-            # Create a small circle for the particle
-            color = (255, 255, 255, particle['alpha'])
-            pygame.draw.circle(display, color, (int(particle['pos'][0]), int(particle['pos'][1])), particle['size'])
     
     def render_title(self, display):
         """Render animated game title"""
@@ -176,36 +90,73 @@ class MainMenu:
         for i, item in enumerate(self.menu_items):
             y_pos = start_y + i * 25
             
-            # Selection highlight
+            # Selection highlight - blinking effect like the title
             if i == self.selected_item:
-                # Animated selection glow
-                glow_intensity = int(100 + 50 * math.sin(self.menu_animation * 2))
-                color = (0, 0, 0)
-                
-                # Draw selection background
-                selection_rect = pygame.Rect(display.get_width() // 2 - 80, y_pos - 5, 160, 20)
-                pygame.draw.rect(display, (255, 255, 255, 100), selection_rect)
-                pygame.draw.rect(display, (0, 0, 0, 150), selection_rect, 2)
+                # Use the same blinking pattern as the title
+                blink_intensity = int(50 + 30 * math.sin(self.title_glow))
+                color = (blink_intensity, blink_intensity, blink_intensity)
             else:
                 color = (0, 0, 0)
             
-            # Render menu item text
+            # Render menu item text with stroke
             text = self.menu_font.render(item, True, color)
             text_rect = text.get_rect(center=(display.get_width() // 2, y_pos))
+            
+            # Draw stroke (outline) behind the text
+            stroke_color = (255, 255, 255) if color == (0, 0, 0) else (0, 0, 0)
+            stroke_text = self.menu_font.render(item, True, stroke_color)
+            
+            # Draw stroke in all 8 directions around the text
+            for offset in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+                stroke_rect = text_rect.copy()
+                stroke_rect.x += offset[0]
+                stroke_rect.y += offset[1]
+                display.blit(stroke_text, stroke_rect)
+            
+            # Draw main text on top
             display.blit(text, text_rect)
     
     def render_game_info(self, display):
         """Render current game progress information"""
+        # Use the same blinking pattern as the title for bottom text
+        blink_intensity = int(50 + 30 * math.sin(self.title_glow))
+        blink_color = (blink_intensity, blink_intensity, blink_intensity)
+        
         # Game progress info
         progress_text = f"Level: {self.current_level} | Max: {self.max_level} | Deaths: {self.death_count}"
-        progress_surface = self.small_font.render(progress_text, True, (0, 0, 0))
+        progress_surface = self.small_font.render(progress_text, True, blink_color)
         progress_rect = progress_surface.get_rect(center=(display.get_width() // 2, display.get_height() - 30))
+        
+        # Draw stroke for progress text
+        stroke_color = (255, 255, 255) if blink_intensity < 128 else (0, 0, 0)
+        stroke_progress = self.small_font.render(progress_text, True, stroke_color)
+        
+        # Draw stroke in all 8 directions around the progress text
+        for offset in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+            stroke_rect = progress_rect.copy()
+            stroke_rect.x += offset[0]
+            stroke_rect.y += offset[1]
+            display.blit(stroke_progress, stroke_rect)
+        
+        # Draw main progress text on top
         display.blit(progress_surface, progress_rect)
         
         # Controls hint
         controls_text = "Use ↑↓ to navigate, ENTER to select, ESC to exit"
-        controls_surface = self.small_font.render(controls_text, True, (0, 0, 0))
+        controls_surface = self.small_font.render(controls_text, True, blink_color)
         controls_rect = controls_surface.get_rect(center=(display.get_width() // 2, display.get_height() - 15))
+        
+        # Draw stroke for controls text
+        stroke_controls = self.small_font.render(controls_text, True, stroke_color)
+        
+        # Draw stroke in all 8 directions around the controls text
+        for offset in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+            stroke_rect = controls_rect.copy()
+            stroke_rect.x += offset[0]
+            stroke_rect.y += offset[1]
+            display.blit(stroke_controls, stroke_rect)
+        
+        # Draw main controls text on top
         display.blit(controls_surface, controls_rect)
     
     def render(self, display, display_2):
@@ -214,11 +165,11 @@ class MainMenu:
         display.fill((0, 0, 0, 0))
         display_2.fill((0, 0, 0))
         
-        # Render background
-        self.render_background(display_2)
+        # Render background using shared background
+        self.shared_background.render_background(display_2)
         
-        # Render particles
-        self.render_particles(display)
+        # Render particles using shared background
+        self.shared_background.render_particles(display)
         
         # Render title
         self.render_title(display)
@@ -262,7 +213,7 @@ class MainMenu:
                 return action
             
             # Update animations
-            self.update_particles()
+            self.shared_background.update()
             
             # Render
             self.render(self.screen, self.screen)  # Using screen directly for menu
@@ -271,7 +222,7 @@ class MainMenu:
             pygame.display.flip()
             self.clock.tick(60)
 
-def main_menu(screen, clock, assets, sfx):
+def main_menu(screen, clock, assets, sfx, shared_background=None):
     """Entry point for main menu"""
-    menu = MainMenu(screen, clock, assets, sfx)
+    menu = MainMenu(screen, clock, assets, sfx, shared_background)
     return menu.run()

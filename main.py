@@ -12,6 +12,10 @@ from scripts.particle import Particle
 from scripts.spark import Spark
 from scripts.pause import pause_menu, options_menu, levels_menu
 from scripts.main_menu import main_menu
+from scripts.save_select import save_select
+from scripts.level_select import level_select
+from scripts.about import about_screen
+from scripts.shared_background import SharedBackground
 
 
 class Game:
@@ -91,6 +95,10 @@ class Game:
         # Game state management
         self.game_state = "menu"  # menu, playing, paused
         self.show_menu = True
+        self.current_save_slot = 0  # Track which save slot is currently being used
+        
+        # Shared background for consistent animation across screens
+        self.shared_background = SharedBackground(self.assets)
 
 
     def save_game_state(self):
@@ -101,8 +109,13 @@ class Game:
             "death_counter": self.death_counter,
         }
         try:
-            with open("savefile.json", "w") as save_file:
-                json.dump(state, save_file)
+            # Use current save slot if available, otherwise default to savefile.json
+            if hasattr(self, 'current_save_slot'):
+                save_file = f"savefile_{self.current_save_slot + 1}.json"
+            else:
+                save_file = "savefile.json"
+            with open(save_file, "w") as f:
+                json.dump(state, f)
         except Exception as e:
             print(f"Error saving game state: {e}")
 
@@ -173,26 +186,56 @@ class Game:
         if action == "exit":
             return False
         elif action == "start_game":
-            self.game_state = "playing"
-            self.show_menu = False
-            self.load_level(self.level)
-        elif action == "load_game":
-            self.load_game_state()
-            self.game_state = "playing"
-            self.show_menu = False
-            self.load_level(self.level)
-        elif action == "level_select":
-            selected_level = levels_menu(self.screen, self.clock, self.level, self.max_level)
-            if selected_level != self.level:
-                self.level = selected_level
-                self.game_state = "playing"
-                self.show_menu = False
-                self.load_level(self.level)
+            # Show save selection screen
+            selected_save = save_select(self.screen, self.clock, self.assets, self.sfx, self.shared_background)
+            if selected_save == "back":
+                return True  # Return to main menu
+            elif selected_save == "exit":
+                return False
+            else:
+                # Set the current save slot
+                self.current_save_slot = selected_save
+                
+                # Load the selected save file
+                save_file = f"savefile_{selected_save + 1}.json"
+                if os.path.exists(save_file):
+                    with open(save_file, "r") as f:
+                        save_data = json.load(f)
+                        self.level = save_data.get("level", 1)
+                        self.max_level = save_data.get("max_level", 1)
+                        self.death_counter = save_data.get("death_counter", 0)
+                else:
+                    # New save file
+                    self.level = 1
+                    self.max_level = 1
+                    self.death_counter = 0
+                    # Create new save file
+                    save_data = {
+                        "level": self.level,
+                        "max_level": self.max_level,
+                        "death_counter": self.death_counter
+                    }
+                    with open(save_file, "w") as f:
+                        json.dump(save_data, f)
+                
+                # Show level selection screen
+                selected_level = level_select(self.screen, self.clock, self.assets, self.sfx, self.max_level, self.shared_background)
+                if selected_level == "back":
+                    return True  # Return to main menu
+                elif selected_level == "exit":
+                    return False
+                else:
+                    self.level = selected_level
+                    self.game_state = "playing"
+                    self.show_menu = False
+                    self.load_level(self.level)
         elif action == "options":
-            options_menu(self.screen, self.clock, self.level, self.max_level)
+            options_menu(self.screen, self.clock, self.level, self.max_level, self.assets, self.sfx, self.shared_background)
         elif action == "about":
-            # You can implement an about menu here
-            pass
+            about_result = about_screen(self.screen, self.clock, self.assets, self.sfx, self.shared_background)
+            if about_result == "exit":
+                return False
+            # If "back", continue to main menu
         return True
     
     def run(self):
@@ -206,7 +249,7 @@ class Game:
             while True:
                 # Show main menu if needed
                 if self.show_menu:
-                    action = main_menu(self.screen, self.clock, self.assets, self.sfx)
+                    action = main_menu(self.screen, self.clock, self.assets, self.sfx, self.shared_background)
                     if not self.handle_menu_action(action):
                         break
                     continue
@@ -370,7 +413,7 @@ class Game:
                         if event.key == pygame.K_LSHIFT:
                             self.player.dash()
                         if event.key == pygame.K_ESCAPE:
-                            selected_level = pause_menu(self.screen, self.clock, self.level, self.max_level)
+                            selected_level = pause_menu(self.screen, self.clock, self.level, self.max_level, self.assets, self.sfx, self.shared_background)
                             if selected_level == "menu":
                                 self.show_menu = True
                                 self.game_state = "menu"

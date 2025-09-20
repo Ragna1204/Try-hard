@@ -1,5 +1,8 @@
 import pygame
 import sys
+import math
+from scripts.about import about_screen
+from scripts.shared_background import SharedBackground
 
 pygame.init()
 pygame.mixer.init()
@@ -7,14 +10,31 @@ pygame.mixer.init()
 click_sound = pygame.mixer.Sound('data/menu.wav')
 click_sound.set_volume(0.2)
 
-def options_menu(screen, clock, current_level, max_level):
+def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None, shared_background=None):
     font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 20)
     title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 40)
-    options_items = ["Key-bindings", "Back"]
+    options_items = ["Key-bindings", "Volume", "Back"]
     selected_item = 0
+    
+    # Create shared background if not provided
+    if not shared_background and assets:
+        shared_background = SharedBackground(assets)
 
     while True:
-        screen.fill((0, 0, 0, 180))  # Semi-transparent background
+        # Clear screen
+        screen.fill((0, 0, 0))
+        
+        # Render parallax background if available
+        if shared_background:
+            shared_background.render_background(screen)
+            shared_background.render_particles(screen)
+            shared_background.update()
+        
+        # Semi-transparent overlay
+        overlay = pygame.Surface(screen.get_size())
+        overlay.fill((0, 0, 0))
+        overlay.set_alpha(180)
+        screen.blit(overlay, (0, 0))
 
         # Draw the title "Options"
         title_text = title_font.render("Options", True, (255, 255, 255))
@@ -46,12 +66,161 @@ def options_menu(screen, clock, current_level, max_level):
                     click_sound.play()
                     if selected_item == 0:  # Key-bindings
                         key_bindings_menu(screen, clock)
-                    elif selected_item == 1:  # Levels
-                        return levels_menu(screen, clock, current_level, max_level)
+                    elif selected_item == 1:  # Volume
+                        volume_menu(screen, clock, sfx, shared_background)
                     elif selected_item == 2:  # Back
                         return current_level
                 elif event.key == pygame.K_ESCAPE:  # Escape to go back
                     return current_level
+
+        clock.tick(60)
+
+
+def volume_menu(screen, clock, sfx, shared_background=None):
+    """Volume control menu with sliders for music and effects"""
+    font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 20)
+    title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 40)
+    small_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 16)
+
+    music_volume = 1.0  # Default music volume
+    effects_volume = 1.0  # Default effects volume
+
+    selected_slider = 0  # 0 for music, 1 for effects
+    title_glow = 0
+
+    slider_width = 200
+    slider_height = 20
+    slider_x = screen.get_width() // 2 - slider_width // 2
+
+    # Group music and effects controls for alignment and boxing
+    music_group_y = 120
+    effects_group_y = 220
+    group_height = 80
+
+    if hasattr(pygame.mixer.music, 'set_volume'):
+        pygame.mixer.music.set_volume(music_volume)
+
+    if sfx:
+        for sound in sfx.values():
+            if hasattr(sound, 'set_volume'):
+                sound.set_volume(effects_volume)
+
+    while True:
+        title_glow += 0.1
+        screen.fill((0, 0, 0))
+
+        if shared_background:
+            shared_background.render_background(screen)
+            shared_background.render_particles(screen)
+            shared_background.update()
+
+        overlay = pygame.Surface(screen.get_size())
+        overlay.fill((0, 0, 0))
+        overlay.set_alpha(180)
+        screen.blit(overlay, (0, 0))
+
+        title_text = title_font.render("Volume Settings", True, (255, 255, 255))
+        title_rect = title_text.get_rect(center=(screen.get_width() // 2, 50))
+        screen.blit(title_text, title_rect)
+
+        # Music Volume Group
+        music_group_rect = pygame.Rect(slider_x - 20, music_group_y, slider_width + 40, group_height)
+        if selected_slider == 0:
+            blink_intensity = int(128 + 127 * math.sin(title_glow))
+            pygame.draw.rect(screen, (blink_intensity, blink_intensity, blink_intensity), music_group_rect, 2)
+        else:
+            pygame.draw.rect(screen, (255, 255, 255), music_group_rect, 1)
+
+        music_label_color = (blink_intensity, blink_intensity, blink_intensity) if selected_slider == 0 else (255, 255, 255)
+        music_text = font.render("Music Volume", True, music_label_color)
+        music_rect = music_text.get_rect(center=(screen.get_width() // 2, music_group_y + 20))
+        screen.blit(music_text, music_rect)
+
+        music_slider_y = music_group_y + 40
+        pygame.draw.rect(screen, (100, 100, 100), (slider_x, music_slider_y, slider_width, slider_height))
+        pygame.draw.rect(screen, (255, 255, 255), (slider_x, music_slider_y, slider_width, slider_height), 2)
+        handle_x_music = slider_x + int(music_volume * (slider_width - 10))
+        pygame.draw.rect(screen, (255, 255, 255), (handle_x_music, music_slider_y - 2, 10, slider_height + 4))
+        music_percent = int(music_volume * 100)
+        percent_text_music = small_font.render(f"{music_percent}%", True, music_label_color)
+        percent_rect_music = percent_text_music.get_rect(center=(screen.get_width() // 2, music_slider_y + 30))
+        screen.blit(percent_text_music, percent_rect_music)
+
+        # Effects Volume Group
+        effects_group_rect = pygame.Rect(slider_x - 20, effects_group_y, slider_width + 40, group_height)
+        if selected_slider == 1:
+            blink_intensity = int(128 + 127 * math.sin(title_glow))
+            pygame.draw.rect(screen, (blink_intensity, blink_intensity, blink_intensity), effects_group_rect, 2)
+        else:
+            pygame.draw.rect(screen, (255, 255, 255), effects_group_rect, 1)
+
+        effects_label_color = (blink_intensity, blink_intensity, blink_intensity) if selected_slider == 1 else (255, 255, 255)
+        effects_text = font.render("Effects Volume", True, effects_label_color)
+        effects_rect = effects_text.get_rect(center=(screen.get_width() // 2, effects_group_y + 20))
+        screen.blit(effects_text, effects_rect)
+
+        effects_slider_y = effects_group_y + 40
+        pygame.draw.rect(screen, (100, 100, 100), (slider_x, effects_slider_y, slider_width, slider_height))
+        pygame.draw.rect(screen, (255, 255, 255), (slider_x, effects_slider_y, slider_width, slider_height), 2)
+        handle_x_effects = slider_x + int(effects_volume * (slider_width - 10))
+        pygame.draw.rect(screen, (255, 255, 255), (handle_x_effects, effects_slider_y - 2, 10, slider_height + 4))
+        effects_percent = int(effects_volume * 100)
+        percent_text_effects = small_font.render(f"{effects_percent}%", True, effects_label_color)
+        percent_rect_effects = percent_text_effects.get_rect(center=(screen.get_width() // 2, effects_slider_y + 30))
+        screen.blit(percent_text_effects, percent_rect_effects)
+
+        back_text = small_font.render("Press ESC to go back", True, (200, 200, 200))
+        back_rect = back_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 30))
+        screen.blit(back_text, back_rect)
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return
+                if event.key == pygame.K_UP:
+                    selected_slider = (selected_slider - 1) % 2
+                    click_sound.play()
+                if event.key == pygame.K_DOWN:
+                    selected_slider = (selected_slider + 1) % 2
+                    click_sound.play()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    mouse_x, mouse_y = event.pos
+                    if music_group_rect.collidepoint(mouse_x, mouse_y):
+                        selected_slider = 0
+                        music_volume = max(0, min(1, (mouse_x - slider_x) / slider_width))
+                        if hasattr(pygame.mixer.music, 'set_volume'):
+                            pygame.mixer.music.set_volume(music_volume)
+                    elif effects_group_rect.collidepoint(mouse_x, mouse_y):
+                        selected_slider = 1
+                        effects_volume = max(0, min(1, (mouse_x - slider_x) / slider_width))
+                        if sfx:
+                            for sound in sfx.values():
+                                if hasattr(sound, 'set_volume'):
+                                    sound.set_volume(effects_volume)
+            elif event.type == pygame.MOUSEMOTION:
+                mouse_x, mouse_y = event.pos
+                if music_group_rect.collidepoint(mouse_x, mouse_y):
+                    selected_slider = 0
+                elif effects_group_rect.collidepoint(mouse_x, mouse_y):
+                    selected_slider = 1
+
+                if event.buttons[0]:
+                    if selected_slider == 0:
+                        music_volume = max(0, min(1, (mouse_x - slider_x) / slider_width))
+                        if hasattr(pygame.mixer.music, 'set_volume'):
+                            pygame.mixer.music.set_volume(music_volume)
+                    elif selected_slider == 1:
+                        effects_volume = max(0, min(1, (mouse_x - slider_x) / slider_width))
+                        if sfx:
+                            for sound in sfx.values():
+                                if hasattr(sound, 'set_volume'):
+                                    sound.set_volume(effects_volume)
 
         clock.tick(60)
 
@@ -207,7 +376,7 @@ def about_menu(screen, clock):
         clock.tick(60)
 
 
-def pause_menu(screen, clock, current_level, max_level):
+def pause_menu(screen, clock, current_level, max_level, assets=None, sfx=None, shared_background=None):
     font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 20)
     title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 48)
     menu_items = ["Resume", "Main Menu", "Options", "Levels", "About", "Exit"]
@@ -249,11 +418,14 @@ def pause_menu(screen, clock, current_level, max_level):
                     elif selected_item == 1:  # Main Menu
                         return "menu"
                     elif selected_item == 2:  # Options
-                        return options_menu(screen, clock, current_level, max_level)
+                        return options_menu(screen, clock, current_level, max_level, assets, sfx, shared_background)
                     elif selected_item == 3:  # Levels
                         return levels_menu(screen, clock, current_level, max_level)
                     elif selected_item == 4:  # About
-                        about_menu(screen, clock)
+                        if assets and sfx and shared_background:
+                            about_screen(screen, clock, assets, sfx, shared_background)
+                        else:
+                            about_menu(screen, clock)
                     elif selected_item == 5:  # Exit
                         pygame.quit()
                         sys.exit()
