@@ -54,7 +54,7 @@ class AboutScreen:
             "",
             "Test your skills and see how far you can go!",
             "",
-            "Press ESC to return"
+            "Press SPACE or ESC to return"
         ]
     
     
@@ -152,7 +152,7 @@ class AboutScreen:
                 return "exit"
             
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_SPACE or event.key == pygame.K_ESCAPE:
                     click_sound.play()
                     return "back"
         

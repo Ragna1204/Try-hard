@@ -142,7 +142,7 @@ class MainMenu:
         display.blit(progress_surface, progress_rect)
         
         # Controls hint
-        controls_text = "Use ↑↓ to navigate, ENTER to select, ESC to exit"
+        controls_text = "Use W/S or ↑/↓ to navigate, SPACE/ENTER to select"
         controls_surface = self.small_font.render(controls_text, True, blink_color)
         controls_rect = controls_surface.get_rect(center=(display.get_width() // 2, display.get_height() - 15))
         
@@ -190,13 +190,13 @@ class MainMenu:
                 return "exit"
             
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_DOWN:
+                if event.key == pygame.K_s or event.key == pygame.K_DOWN:
                     self.selected_item = (self.selected_item + 1) % len(self.menu_items)
                     click_sound.play()
-                elif event.key == pygame.K_UP:
+                elif event.key == pygame.K_w or event.key == pygame.K_UP:
                     self.selected_item = (self.selected_item - 1) % len(self.menu_items)
                     click_sound.play()
-                elif event.key == pygame.K_RETURN:
+                elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
                     click_sound.play()
                     return self.menu_items[self.selected_item].lower().replace(" ", "_")
                 elif event.key == pygame.K_ESCAPE:

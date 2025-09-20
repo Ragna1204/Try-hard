@@ -210,7 +210,7 @@ class SaveSelect:
     
     def render_controls(self, display):
         """Render control instructions"""
-        controls_text = "Use ←→ to select, ENTER to load, ESC to back"
+        controls_text = "Use A/D or ←/→ to select, SPACE/ENTER to load"
         controls_surface = self.small_font.render(controls_text, True, (0, 0, 0))
         controls_rect = controls_surface.get_rect(center=(display.get_width() // 2, display.get_height() - 15))
         
@@ -255,13 +255,13 @@ class SaveSelect:
                 return "exit"
             
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_a or event.key == pygame.K_LEFT:
                     self.selected_slot = (self.selected_slot - 1) % 4
                     click_sound.play()
-                elif event.key == pygame.K_RIGHT:
+                elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                     self.selected_slot = (self.selected_slot + 1) % 4
                     click_sound.play()
-                elif event.key == pygame.K_RETURN:
+                elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
                     click_sound.play()
                     return self.selected_slot
                 elif event.key == pygame.K_ESCAPE:

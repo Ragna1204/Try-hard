@@ -125,7 +125,7 @@ class LevelSelect:
     
     def render_controls(self, display):
         """Render control instructions"""
-        controls_text = "Use ←→↑↓ to select, ENTER to play, ESC to back"
+        controls_text = "Use WASD or ←→↑↓ to select, SPACE/ENTER to play"
         controls_surface = self.small_font.render(controls_text, True, (0, 0, 0))
         controls_rect = controls_surface.get_rect(center=(display.get_width() // 2, display.get_height() - 15))
         
@@ -170,27 +170,27 @@ class LevelSelect:
                 return "exit"
             
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_a or event.key == pygame.K_LEFT:
                     if self.selected_level > 1:
                         self.selected_level -= 1
                         click_sound.play()
-                elif event.key == pygame.K_RIGHT:
+                elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                     if self.selected_level < self.max_level:
                         self.selected_level += 1
                         click_sound.play()
-                elif event.key == pygame.K_UP:
+                elif event.key == pygame.K_w or event.key == pygame.K_UP:
                     # Move up a row
                     new_level = self.selected_level - self.levels_per_row
                     if new_level >= 1:
                         self.selected_level = new_level
                         click_sound.play()
-                elif event.key == pygame.K_DOWN:
+                elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
                     # Move down a row
                     new_level = self.selected_level + self.levels_per_row
                     if new_level <= self.max_level:
                         self.selected_level = new_level
                         click_sound.play()
-                elif event.key == pygame.K_RETURN:
+                elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
                     click_sound.play()
                     return self.selected_level
                 elif event.key == pygame.K_ESCAPE:

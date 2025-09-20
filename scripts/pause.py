@@ -15,12 +15,14 @@ def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None,
     title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 40)
     options_items = ["Key-bindings", "Volume", "Back"]
     selected_item = 0
+    title_glow = 0
     
     # Create shared background if not provided
     if not shared_background and assets:
         shared_background = SharedBackground(assets)
 
     while True:
+        title_glow += 0.1
         # Clear screen
         screen.fill((0, 0, 0))
         
@@ -43,9 +45,23 @@ def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None,
 
         # Draw options menu items
         for i, item in enumerate(options_items):
-            color = (255, 255, 255) if i == selected_item else (200, 200, 200)
+            if i == selected_item:
+                blink_intensity = int(128 + 127 * math.sin(title_glow))
+                color = (blink_intensity, blink_intensity, blink_intensity)
+            else:
+                color = (255, 255, 255)
+            
             text = font.render(item, True, color)
-            text_rect = text.get_rect(center=(screen.get_width() // 2, 150 + i * 30))
+            text_rect = text.get_rect(center=(screen.get_width() // 2, 150 + i * 40))
+            
+            stroke_color = (0, 0, 0)
+            stroke_text = font.render(item, True, stroke_color)
+            for offset in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+                stroke_rect = text_rect.copy()
+                stroke_rect.x += offset[0]
+                stroke_rect.y += offset[1]
+                screen.blit(stroke_text, stroke_rect)
+
             screen.blit(text, text_rect)
 
         pygame.display.flip()
@@ -56,13 +72,13 @@ def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None,
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_DOWN:
+                if event.key == pygame.K_s or event.key == pygame.K_DOWN:
                     selected_item = (selected_item + 1) % len(options_items)
                     click_sound.play()
-                elif event.key == pygame.K_UP:
+                elif event.key == pygame.K_w or event.key == pygame.K_UP:
                     selected_item = (selected_item - 1) % len(options_items)
                     click_sound.play()
-                elif event.key == pygame.K_RETURN:
+                elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
                     click_sound.play()
                     if selected_item == 0:  # Key-bindings
                         key_bindings_menu(screen, clock)
@@ -127,8 +143,10 @@ def volume_menu(screen, clock, sfx, shared_background=None):
         music_group_rect = pygame.Rect(slider_x - 20, music_group_y, slider_width + 40, group_height)
         if selected_slider == 0:
             blink_intensity = int(128 + 127 * math.sin(title_glow))
+            pygame.draw.rect(screen, (0, 0, 0), music_group_rect.inflate(4, 4))
             pygame.draw.rect(screen, (blink_intensity, blink_intensity, blink_intensity), music_group_rect, 2)
         else:
+            pygame.draw.rect(screen, (0, 0, 0), music_group_rect.inflate(2, 2))
             pygame.draw.rect(screen, (255, 255, 255), music_group_rect, 1)
 
         music_label_color = (blink_intensity, blink_intensity, blink_intensity) if selected_slider == 0 else (255, 255, 255)
@@ -137,9 +155,11 @@ def volume_menu(screen, clock, sfx, shared_background=None):
         screen.blit(music_text, music_rect)
 
         music_slider_y = music_group_y + 40
+        pygame.draw.rect(screen, (0, 0, 0), (slider_x - 1, music_slider_y - 1, slider_width + 2, slider_height + 2))
         pygame.draw.rect(screen, (100, 100, 100), (slider_x, music_slider_y, slider_width, slider_height))
         pygame.draw.rect(screen, (255, 255, 255), (slider_x, music_slider_y, slider_width, slider_height), 2)
         handle_x_music = slider_x + int(music_volume * (slider_width - 10))
+        pygame.draw.rect(screen, (0, 0, 0), (handle_x_music - 1, music_slider_y - 3, 12, slider_height + 6))
         pygame.draw.rect(screen, (255, 255, 255), (handle_x_music, music_slider_y - 2, 10, slider_height + 4))
         music_percent = int(music_volume * 100)
         percent_text_music = small_font.render(f"{music_percent}%", True, music_label_color)
@@ -150,8 +170,10 @@ def volume_menu(screen, clock, sfx, shared_background=None):
         effects_group_rect = pygame.Rect(slider_x - 20, effects_group_y, slider_width + 40, group_height)
         if selected_slider == 1:
             blink_intensity = int(128 + 127 * math.sin(title_glow))
+            pygame.draw.rect(screen, (0, 0, 0), effects_group_rect.inflate(4, 4))
             pygame.draw.rect(screen, (blink_intensity, blink_intensity, blink_intensity), effects_group_rect, 2)
         else:
+            pygame.draw.rect(screen, (0, 0, 0), effects_group_rect.inflate(2, 2))
             pygame.draw.rect(screen, (255, 255, 255), effects_group_rect, 1)
 
         effects_label_color = (blink_intensity, blink_intensity, blink_intensity) if selected_slider == 1 else (255, 255, 255)
@@ -160,9 +182,11 @@ def volume_menu(screen, clock, sfx, shared_background=None):
         screen.blit(effects_text, effects_rect)
 
         effects_slider_y = effects_group_y + 40
+        pygame.draw.rect(screen, (0, 0, 0), (slider_x - 1, effects_slider_y - 1, slider_width + 2, slider_height + 2))
         pygame.draw.rect(screen, (100, 100, 100), (slider_x, effects_slider_y, slider_width, slider_height))
         pygame.draw.rect(screen, (255, 255, 255), (slider_x, effects_slider_y, slider_width, slider_height), 2)
         handle_x_effects = slider_x + int(effects_volume * (slider_width - 10))
+        pygame.draw.rect(screen, (0, 0, 0), (handle_x_effects - 1, effects_slider_y - 3, 12, slider_height + 6))
         pygame.draw.rect(screen, (255, 255, 255), (handle_x_effects, effects_slider_y - 2, 10, slider_height + 4))
         effects_percent = int(effects_volume * 100)
         percent_text_effects = small_font.render(f"{effects_percent}%", True, effects_label_color)
@@ -182,12 +206,35 @@ def volume_menu(screen, clock, sfx, shared_background=None):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     return
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_w or event.key == pygame.K_UP:
                     selected_slider = (selected_slider - 1) % 2
                     click_sound.play()
-                if event.key == pygame.K_DOWN:
+                if event.key == pygame.K_s or event.key == pygame.K_DOWN:
                     selected_slider = (selected_slider + 1) % 2
                     click_sound.play()
+                if event.key == pygame.K_a or event.key == pygame.K_LEFT:
+                    if selected_slider == 0:
+                        music_volume = max(0, music_volume - 0.1)
+                        if hasattr(pygame.mixer.music, 'set_volume'):
+                            pygame.mixer.music.set_volume(music_volume)
+                    else:
+                        effects_volume = max(0, effects_volume - 0.1)
+                        if sfx:
+                            for sound in sfx.values():
+                                if hasattr(sound, 'set_volume'):
+                                    sound.set_volume(effects_volume)
+                if event.key == pygame.K_d or event.key == pygame.K_RIGHT:
+                    if selected_slider == 0:
+                        music_volume = min(1, music_volume + 0.1)
+                        if hasattr(pygame.mixer.music, 'set_volume'):
+                            pygame.mixer.music.set_volume(music_volume)
+                    else:
+                        effects_volume = min(1, effects_volume + 0.1)
+                        if sfx:
+                            for sound in sfx.values():
+                                if hasattr(sound, 'set_volume'):
+                                    sound.set_volume(effects_volume)
+
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     mouse_x, mouse_y = event.pos
