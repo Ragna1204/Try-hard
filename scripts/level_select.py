@@ -9,9 +9,6 @@ from scripts.shared_background import SharedBackground
 pygame.init()
 pygame.mixer.init()
 
-click_sound = pygame.mixer.Sound('data/menu.wav')
-click_sound.set_volume(0.2)
-
 class LevelSelect:
     def __init__(self, screen, clock, assets, sfx, max_level, shared_background=None):
         self.screen = screen
@@ -173,25 +170,25 @@ class LevelSelect:
                 if event.key == pygame.K_a or event.key == pygame.K_LEFT:
                     if self.selected_level > 1:
                         self.selected_level -= 1
-                        click_sound.play()
+                        self.sfx['menu_click'].play()
                 elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                     if self.selected_level < self.max_level:
                         self.selected_level += 1
-                        click_sound.play()
+                        self.sfx['menu_click'].play()
                 elif event.key == pygame.K_w or event.key == pygame.K_UP:
                     # Move up a row
                     new_level = self.selected_level - self.levels_per_row
                     if new_level >= 1:
                         self.selected_level = new_level
-                        click_sound.play()
+                        self.sfx['menu_click'].play()
                 elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
                     # Move down a row
                     new_level = self.selected_level + self.levels_per_row
                     if new_level <= self.max_level:
                         self.selected_level = new_level
-                        click_sound.play()
+                        self.sfx['menu_click'].play()
                 elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
-                    click_sound.play()
+                    self.sfx['menu_click'].play()
                     return self.selected_level
                 elif event.key == pygame.K_ESCAPE:
                     return "back"

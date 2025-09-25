@@ -8,9 +8,6 @@ from scripts.shared_background import SharedBackground
 pygame.init()
 pygame.mixer.init()
 
-click_sound = pygame.mixer.Sound('data/menu.wav')
-click_sound.set_volume(0.2)
-
 class MainMenu:
     def __init__(self, screen, clock, assets, sfx, shared_background=None):
         self.screen = screen
@@ -192,12 +189,12 @@ class MainMenu:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_s or event.key == pygame.K_DOWN:
                     self.selected_item = (self.selected_item + 1) % len(self.menu_items)
-                    click_sound.play()
+                    self.sfx['menu_click'].play()
                 elif event.key == pygame.K_w or event.key == pygame.K_UP:
                     self.selected_item = (self.selected_item - 1) % len(self.menu_items)
-                    click_sound.play()
+                    self.sfx['menu_click'].play()
                 elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
-                    click_sound.play()
+                    self.sfx['menu_click'].play()
                     return self.menu_items[self.selected_item].lower().replace(" ", "_")
                 elif event.key == pygame.K_ESCAPE:
                     return "exit"

@@ -90,6 +90,7 @@ class Game:
             'hit': pygame.mixer.Sound('data/sfx/hit.wav'),
             'shoot': pygame.mixer.Sound('data/sfx/shoot.wav'),
             'ambience': pygame.mixer.Sound('data/sfx/ambience.wav'),
+            'menu_click': pygame.mixer.Sound('data/menu.wav'),
         }
 
         self.sfx['ambience'].set_volume(0.2)
@@ -97,6 +98,7 @@ class Game:
         self.sfx['hit'].set_volume(0.8)
         self.sfx['dash'].set_volume(0.3)
         self.sfx['jump'].set_volume(0.7)
+        self.sfx['menu_click'].set_volume(0.3)
 
         self.clouds = Clouds(self.assets['clouds'], count=16)
 
@@ -255,6 +257,7 @@ class Game:
                     self.load_level(self.level)
         elif action == "options":
             options_menu(self.screen, self.clock, self.level, self.max_level, self.assets, self.sfx, self.shared_background)
+            self.load_keybindings()
         elif action == "about":
             about_result = about_screen(self.screen, self.clock, self.assets, self.sfx, self.shared_background)
             if about_result == "exit":
