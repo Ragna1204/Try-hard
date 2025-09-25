@@ -3,6 +3,7 @@ import sys
 import math
 from scripts.about import about_screen
 from scripts.shared_background import SharedBackground
+from scripts.keybindings_menu import keybindings_menu
 
 pygame.init()
 pygame.mixer.init()
@@ -81,7 +82,7 @@ def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None,
                 elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
                     click_sound.play()
                     if selected_item == 0:  # Key-bindings
-                        key_bindings_menu(screen, clock)
+                        keybindings_menu(screen, clock, assets, sfx, shared_background)
                     elif selected_item == 1:  # Volume
                         volume_menu(screen, clock, sfx, shared_background)
                     elif selected_item == 2:  # Back
@@ -344,45 +345,7 @@ def levels_menu(screen, clock, current_level, max_level):
 
         clock.tick(60)
 
-def key_bindings_menu(screen, clock):
-    font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 20)
-    title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 40)
-    bindings = [
-        "Move Left : A",
-        "Move Right : D",
-        "Jump : Space",
-        "Dash/Attack : L_Shift",
-        "Wall jump : Space (while on wall)",
-        "Pause : Esc",
-        "Toggle fullscreen : F"
-    ]
 
-    while True:
-        screen.fill((0, 0, 0, 180))  # Semi-transparent background
-
-        # Draw the title "Key-bindings"
-        title_text = title_font.render("Key-bindings", True, (255, 255, 255))
-        title_rect = title_text.get_rect(center=(screen.get_width() // 2, 50))
-        screen.blit(title_text, title_rect)
-
-        # Display each key-binding
-        for i, binding in enumerate(bindings):
-            text = font.render(binding, True, (255, 255, 255))
-            text_rect = text.get_rect(center=(screen.get_width() // 2, 150 + i * 30))
-            screen.blit(text, text_rect)
-
-        pygame.display.flip()
-
-        # Event handling
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:  # Pressing ESC will return to options menu
-                    return
-
-        clock.tick(60)
 
 
 def about_menu(screen, clock):
@@ -452,13 +415,10 @@ def pause_menu(screen, clock, current_level, max_level, assets=None, sfx=None, s
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_DOWN:
+                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
                     selected_item = (selected_item + 1) % len(menu_items)
                     click_sound.play()
-                elif event.key == pygame.K_UP:
-                    selected_item = (selected_item - 1) % len(menu_items)
-                    click_sound.play()
-                elif event.key == pygame.K_RETURN:
+                elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                     click_sound.play()
                     if selected_item == 0:  # Resume
                         return current_level

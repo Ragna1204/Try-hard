@@ -19,8 +19,32 @@ from scripts.shared_background import SharedBackground
 
 
 class Game:
+    def load_keybindings(self):
+        self.keybindings = {
+            'left': pygame.K_a,
+            'right': pygame.K_d,
+            'jump': pygame.K_SPACE,
+            'dash': pygame.K_LSHIFT
+        }
+        try:
+            with open('keybindings.json', 'r') as f:
+                keybindings = json.load(f)
+                for action, key_name in keybindings.items():
+                    self.keybindings[action] = pygame.key.key_code(key_name)
+        except (FileNotFoundError, json.JSONDecodeError):
+            with open('keybindings.json', 'w') as f:
+                json.dump({
+                    'left': 'a',
+                    'right': 'd',
+                    'jump': 'space',
+                    'dash': 'left shift'
+                }, f, indent=4)
+
     def __init__(self):
         pygame.init()
+
+        # Keybindings
+        self.load_keybindings()
 
         pygame.display.set_caption('Tryhard')
         self.is_fullscreen = True
@@ -401,31 +425,33 @@ class Game:
                         sys.exit()
 
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_a:
+                        if event.key == self.keybindings['left']:
                             self.movement[0] = True
-                        if event.key == pygame.K_d:
+                        if event.key == self.keybindings['right']:
                             self.movement[1] = True
                         if event.key == pygame.K_f:  # Toggle fullscreen when F is pressed
                             self.toggle_fullscreen()
-                        if event.key == pygame.K_SPACE:
+                        if event.key == self.keybindings['jump']:
                             if self.player.jump():
                                 self.sfx['jump'].play()
-                        if event.key == pygame.K_LSHIFT:
+                        if event.key == self.keybindings['dash']:
                             self.player.dash()
                         if event.key == pygame.K_ESCAPE:
                             selected_level = pause_menu(self.screen, self.clock, self.level, self.max_level, self.assets, self.sfx, self.shared_background)
+                            self.load_keybindings()
                             if selected_level == "menu":
+                                
                                 self.show_menu = True
                                 self.game_state = "menu"
                             elif selected_level != self.level:
                                 self.load_level(selected_level)
 
                     if event.type == pygame.KEYUP:
-                        if event.key == pygame.K_a:
+                        if event.key == self.keybindings['left']:
                             self.movement[0] = False
-                        if event.key == pygame.K_d:
+                        if event.key == self.keybindings['right']:
                             self.movement[1] = False
-                        if event.key == pygame.K_SPACE:
+                        if event.key == self.keybindings['jump']:
                             self.player.cut_jump()
 
                 if self.transition:
