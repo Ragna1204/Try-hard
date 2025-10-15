@@ -121,22 +121,11 @@ class MainMenu:
             else:
                 color = (0, 0, 0)
 
-            # Render menu item text
+            # Render menu item text - simplified, no outline for cleaner look
             text = self.menu_font.render(item, True, color)
             text_rect = text.get_rect(center=(display.get_width() // 2, y_pos))
 
-            # Draw stroke (outline) behind the text
-            stroke_color = (255, 255, 255) if color == (0, 0, 0) else (0, 0, 0)
-            stroke_text = self.menu_font.render(item, True, stroke_color)
-
-            # Draw stroke in all 8 directions around the text
-            for offset in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
-                stroke_rect = text_rect.copy()
-                stroke_rect.x += offset[0]
-                stroke_rect.y += offset[1]
-                display.blit(stroke_text, stroke_rect)
-
-            # Draw main text on top
+            # Draw main text directly
             display.blit(text, text_rect)
     
     def render_game_info(self, display):
