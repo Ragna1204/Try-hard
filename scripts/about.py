@@ -18,9 +18,9 @@ class AboutScreen:
         self.sfx = sfx
         
         # Fonts
-        self.title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 32)
-        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 18)
-        self.text_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 14)
+        self.title_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 32)
+        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 18)
+        self.text_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 14)
         
         # Animation and scroll variables
         self.title_glow = 0

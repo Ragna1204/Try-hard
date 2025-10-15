@@ -5,9 +5,9 @@ from scripts.utils import resource_path
 def levels_menu(screen, clock, current_level, max_level, sfx):
     import math
     import random
-    font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 28)
-    title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48)
-    small_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 16)
+    font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 28)
+    title_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 48)
+    small_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 16)
 
     levels_per_row = 5
     total_levels = 10  # Adjust this to match your total number of levels

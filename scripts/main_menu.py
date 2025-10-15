@@ -17,10 +17,10 @@ class MainMenu:
         self.sfx = sfx
         
         # Fonts
-        self.title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48) # Revert to original NinjaLine
-        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 24)
-        self.menu_font = pygame.font.Font(resource_path('data/fonts/Aldrich/Aldrich-Regular.ttf'), 22) # Try bolder Aldrich for menu
-        self.small_font = pygame.font.Font(resource_path('data/fonts/Teko/static/Teko-Regular.ttf'), 16)
+        self.title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48) # Keep NinjaLine for title
+        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 24)
+        self.menu_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 22) # Use Fruktur for menu
+        self.small_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 16)
         
         # Menu state
         self.selected_item = 0

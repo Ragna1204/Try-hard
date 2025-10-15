@@ -11,8 +11,8 @@ pygame.init()
 pygame.mixer.init()
 
 def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None, shared_background=None):
-    font = pygame.font.Font(resource_path('data/fonts/exo2/static/Exo2-Regular.ttf'), 20)
-    title_font = pygame.font.Font(resource_path('data/fonts/Cinzel/static/Cinzel-Medium.ttf'), 40)
+    font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 20)
+    title_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 40)
     options_items = ["Key-bindings", "Volume", "Back"]
     selected_item = 0
     hovered_item = None
@@ -130,9 +130,9 @@ def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None,
 
 def volume_menu(screen, clock, sfx, shared_background=None):
     """Volume control menu with sliders for music and effects"""
-    font = pygame.font.Font(resource_path('data/fonts/exo2/static/Exo2-Regular.ttf'), 20)
-    title_font = pygame.font.Font(resource_path('data/fonts/Cinzel/static/Cinzel-Medium.ttf'), 40)
-    small_font = pygame.font.Font(resource_path('data/fonts/exo2/static/Exo2-Regular.ttf'), 16)
+    font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 20)
+    title_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 40)
+    small_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 16)
 
     # Initialize base volumes if not already done
     if not hasattr(volume_menu, 'base_sfx_volumes'):
@@ -317,8 +317,8 @@ def volume_menu(screen, clock, sfx, shared_background=None):
 
 def about_menu(screen, clock, sfx):
     normal_font = pygame.font.Font(None, 20)
-    font = pygame.font.Font(resource_path('data/fonts/exo2/static/Exo2-Regular.ttf'), 20)
-    title_font = pygame.font.Font(resource_path('data/fonts/Cinzel/static/Cinzel-Medium.ttf'), 40)
+    font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 20)
+    title_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 40)
 
     while True:
         screen.fill((0, 0, 0, 180))  # Semi-transparent background
@@ -354,7 +354,7 @@ def about_menu(screen, clock, sfx):
 
 
 def pause_menu(screen, clock, current_level, max_level, assets=None, sfx=None, shared_background=None):
-    font = pygame.font.Font(resource_path('data/fonts/Aldrich/Aldrich-Regular.ttf'), 20) # Try Aldrich for pause menu
+    font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 20) # Use Fruktur for pause menu
     title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48) # Revert to original
     menu_items = ["Resume", "Main Menu", "Options", "Levels", "About", "Exit"]
     selected_item = 0
