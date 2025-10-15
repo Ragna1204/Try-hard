@@ -18,9 +18,9 @@ class MainMenu:
         
         # Fonts
         self.title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48) # Keep NinjaLine for title
-        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 24)
-        self.menu_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 22) # Use Fruktur for menu
-        self.small_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 16)
+        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/AmaticSC/AmaticSC-Regular.ttf'), 24)
+        self.menu_font = pygame.font.Font(resource_path('data/fonts/AmaticSC/AmaticSC-Bold.ttf'), 32) # Use AmaticSC Bold for menu options
+        self.small_font = pygame.font.Font(resource_path('data/fonts/AmaticSC/AmaticSC-Regular.ttf'), 16)
         
         # Menu state
         self.selected_item = 0
@@ -87,7 +87,7 @@ class MainMenu:
         self.menu_animation += 0.05
 
         start_y = 110
-        item_height = 28  # Increased spacing for larger font
+        item_height = 40  # Increased spacing for AmaticSC Bold
         for i, item in enumerate(self.menu_items):
             y_pos = start_y + i * item_height
             base_y_pos = y_pos
@@ -229,7 +229,7 @@ class MainMenu:
                 if event.button == 1:  # Left click
                     mouse_x, mouse_y = event.pos
                     start_y = 110
-                    item_height = 28  # Match the updated spacing
+                    item_height = 40  # Match AmaticSC Bold spacing
                     for i, item in enumerate(self.menu_items):
                         y_pos = start_y + i * item_height
                         item_rect = pygame.Rect(self.screen.get_width() // 2 - 100, y_pos - 10, 200, 20)

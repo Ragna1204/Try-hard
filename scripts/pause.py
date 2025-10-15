@@ -354,7 +354,7 @@ def about_menu(screen, clock, sfx):
 
 
 def pause_menu(screen, clock, current_level, max_level, assets=None, sfx=None, shared_background=None):
-    font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 20) # Use Fruktur for pause menu
+    font = pygame.font.Font(resource_path('data/fonts/AmaticSC/AmaticSC-Bold.ttf'), 28) # Use AmaticSC Bold for pause menu options
     title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48) # Use NinjaLine for title consistency
     menu_items = ["Resume", "Main Menu", "Options", "Levels", "About", "Exit"]
     selected_item = 0
