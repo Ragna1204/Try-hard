@@ -30,7 +30,7 @@ def keybindings_menu(screen, clock, assets, sfx, shared_background):
         }
 
     font_path = resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf')
-    title_font = pygame.font.Font(font_path, 40)
+    title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 40)
     option_font = pygame.font.Font(font_path, 22)
 
     actions = list(keybindings.keys())
