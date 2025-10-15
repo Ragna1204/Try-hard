@@ -4,6 +4,7 @@ import math
 import random
 import json
 from scripts.shared_background import SharedBackground
+from scripts.utils import resource_path
 
 pygame.init()
 pygame.mixer.init()
@@ -16,15 +17,17 @@ class MainMenu:
         self.sfx = sfx
         
         # Fonts
-        self.title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 48)
-        self.subtitle_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 24)
-        self.menu_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 20)
-        self.small_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 16)
+        self.title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48)
+        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 24)
+        self.menu_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 20)
+        self.small_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 16)
         
         # Menu state
         self.selected_item = 0
+        self.hovered_item = None
+        self.last_hovered_item = None  # Track previous hover for sound logic
         self.menu_items = ["Start Game", "Options", "About", "Exit"]
-        
+
         # Animation variables
         self.title_glow = 0
         self.menu_animation = 0
@@ -82,34 +85,57 @@ class MainMenu:
         """Render menu items with selection highlighting"""
         # Animate menu
         self.menu_animation += 0.05
-        
+
         start_y = 110
+        item_height = 25
         for i, item in enumerate(self.menu_items):
-            y_pos = start_y + i * 25
-            
-            # Selection highlight - blinking effect like the title
-            if i == self.selected_item:
-                # Use the same blinking pattern as the title
+            y_pos = start_y + i * item_height
+            base_y_pos = y_pos
+
+            # Check for hover effect
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            item_rect = pygame.Rect(display.get_width() // 2 - 100, y_pos - 10, 200, 20)
+            is_hovered = item_rect.collidepoint(mouse_x, mouse_y) and display.get_rect().collidepoint(mouse_x, mouse_y)
+
+            # Update hover state
+            prev_hovered = self.hovered_item
+            if is_hovered:
+                self.hovered_item = i
+            elif self.hovered_item == i:
+                self.hovered_item = None
+
+            # Play sound only when moving to a NEW hovered item (not from intermediate states)
+            if prev_hovered != self.hovered_item and self.hovered_item is not None and prev_hovered is None:
+                self.sfx['menu_click'].play()
+
+            # Selection highlight - unified hover/selection with priority to hover
+            if i == self.hovered_item:
+                # Hover takes priority - blink effect for consistency
+                blink_intensity = int(50 + 30 * math.sin(self.title_glow))
+                color = (blink_intensity, blink_intensity, blink_intensity)
+                self.selected_item = i  # Update selection to hovered item
+            elif i == self.selected_item:
+                # Use the same blinking pattern as the title for keyboard selection
                 blink_intensity = int(50 + 30 * math.sin(self.title_glow))
                 color = (blink_intensity, blink_intensity, blink_intensity)
             else:
                 color = (0, 0, 0)
-            
-            # Render menu item text with stroke
+
+            # Render menu item text
             text = self.menu_font.render(item, True, color)
             text_rect = text.get_rect(center=(display.get_width() // 2, y_pos))
-            
+
             # Draw stroke (outline) behind the text
             stroke_color = (255, 255, 255) if color == (0, 0, 0) else (0, 0, 0)
             stroke_text = self.menu_font.render(item, True, stroke_color)
-            
+
             # Draw stroke in all 8 directions around the text
             for offset in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
                 stroke_rect = text_rect.copy()
                 stroke_rect.x += offset[0]
                 stroke_rect.y += offset[1]
                 display.blit(stroke_text, stroke_rect)
-            
+
             # Draw main text on top
             display.blit(text, text_rect)
     
@@ -185,7 +211,7 @@ class MainMenu:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return "exit"
-            
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_s or event.key == pygame.K_DOWN:
                     self.selected_item = (self.selected_item + 1) % len(self.menu_items)
@@ -198,7 +224,20 @@ class MainMenu:
                     return self.menu_items[self.selected_item].lower().replace(" ", "_")
                 elif event.key == pygame.K_ESCAPE:
                     return "exit"
-        
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left click
+                    mouse_x, mouse_y = event.pos
+                    start_y = 110
+                    item_height = 25
+                    for i, item in enumerate(self.menu_items):
+                        y_pos = start_y + i * item_height
+                        item_rect = pygame.Rect(self.screen.get_width() // 2 - 100, y_pos - 10, 200, 20)
+                        if item_rect.collidepoint(mouse_x, mouse_y):
+                            self.selected_item = i
+                            self.sfx['menu_click'].play()
+                            return self.menu_items[i].lower().replace(" ", "_")
+
         return None
     
     def run(self):

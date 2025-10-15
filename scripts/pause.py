@@ -4,17 +4,20 @@ import math
 from scripts.about import about_screen
 from scripts.shared_background import SharedBackground
 from scripts.keybindings_menu import keybindings_menu
+from scripts.levels_menu import levels_menu
+from scripts.utils import resource_path
 
 pygame.init()
 pygame.mixer.init()
 
 def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None, shared_background=None):
-    font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 20)
-    title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 40)
+    font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 20)
+    title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 40)
     options_items = ["Key-bindings", "Volume", "Back"]
     selected_item = 0
+    hovered_item = None
     title_glow = 0
-    
+
     # Create shared background if not provided
     if not shared_background and assets:
         shared_background = SharedBackground(assets)
@@ -23,13 +26,13 @@ def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None,
         title_glow += 0.1
         # Clear screen
         screen.fill((0, 0, 0))
-        
+
         # Render parallax background if available
         if shared_background:
             shared_background.render_background(screen)
             shared_background.render_particles(screen)
             shared_background.update()
-        
+
         # Semi-transparent overlay
         overlay = pygame.Surface(screen.get_size())
         overlay.fill((0, 0, 0))
@@ -42,24 +45,44 @@ def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None,
         screen.blit(title_text, title_rect)
 
         # Draw options menu items
+        start_y = 150
+        item_height = 40
         for i, item in enumerate(options_items):
-            if i == selected_item:
+            y_pos = start_y + i * item_height
+
+            # Check for hover effect
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            item_rect = pygame.Rect(screen.get_width() // 2 - 100, y_pos - 10, 200, 20)
+            is_hovered = item_rect.collidepoint(mouse_x, mouse_y)
+
+            # Update hover state and play sound on hover change
+            prev_hovered = hovered_item
+            if is_hovered:
+                hovered_item = i
+            elif hovered_item == i:
+                hovered_item = None
+
+            # Play sound when hover changes (only once per hover)
+            if prev_hovered != hovered_item:
+                if (prev_hovered is None and hovered_item is not None) or (prev_hovered is not None and hovered_item is None):
+                    sfx['menu_click'].play()
+
+            # Unified highlight system - hover takes priority
+            if i == hovered_item:
+                # Hover takes priority
+                blink_intensity = int(128 + 127 * math.sin(title_glow))
+                color = (blink_intensity, blink_intensity, blink_intensity)
+                selected_item = i  # Update selection to hovered item
+            elif i == selected_item:
+                # Blink effect for keyboard selection
                 blink_intensity = int(128 + 127 * math.sin(title_glow))
                 color = (blink_intensity, blink_intensity, blink_intensity)
             else:
                 color = (255, 255, 255)
-            
-            text = font.render(item, True, color)
-            text_rect = text.get_rect(center=(screen.get_width() // 2, 150 + i * 40))
-            
-            stroke_color = (0, 0, 0)
-            stroke_text = font.render(item, True, stroke_color)
-            for offset in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
-                stroke_rect = text_rect.copy()
-                stroke_rect.x += offset[0]
-                stroke_rect.y += offset[1]
-                screen.blit(stroke_text, stroke_rect)
 
+            # Render text
+            text = font.render(item, True, color)
+            text_rect = text.get_rect(center=(screen.get_width() // 2, y_pos))
             screen.blit(text, text_rect)
 
         pygame.display.flip()
@@ -87,14 +110,29 @@ def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None,
                 elif event.key == pygame.K_ESCAPE:  # Escape to go back
                     return current_level
 
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left click
+                    mouse_x, mouse_y = event.pos
+                    for i, item in enumerate(options_items):
+                        y_pos = start_y + i * item_height
+                        item_rect = pygame.Rect(screen.get_width() // 2 - 100, y_pos - 10, 200, 20)
+                        if item_rect.collidepoint(mouse_x, mouse_y):
+                            if i == 0:  # Key-bindings
+                                keybindings_menu(screen, clock, assets, sfx, shared_background)
+                            elif i == 1:  # Volume
+                                volume_menu(screen, clock, sfx, shared_background)
+                            elif i == 2:  # Back
+                                return current_level
+                            break
+
         clock.tick(60)
 
 
 def volume_menu(screen, clock, sfx, shared_background=None):
     """Volume control menu with sliders for music and effects"""
-    font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 20)
-    title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 40)
-    small_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 16)
+    font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 20)
+    title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 40)
+    small_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 16)
 
     # Initialize base volumes if not already done
     if not hasattr(volume_menu, 'base_sfx_volumes'):
@@ -274,85 +312,13 @@ def volume_menu(screen, clock, sfx, shared_background=None):
         clock.tick(60)
 
 
-def levels_menu(screen, clock, current_level, max_level, sfx):
-    font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 20)
-    title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 40)
-
-    levels_per_row = 5
-    total_levels = 10  # Adjust this to match your total number of levels
-    selected_level = current_level
-
-    while True:
-        screen.fill((0, 0, 0, 180))  # Semi-transparent background
-
-        # Draw the title "Levels"
-        title_text = title_font.render("Levels", True, (255, 255, 255))
-        title_rect = title_text.get_rect(center=(screen.get_width() // 2, 50))
-        screen.blit(title_text, title_rect)
-
-        # Draw level numbers
-        for i in range(total_levels):
-            level_number = i + 1
-            row = i // levels_per_row
-            col = i % levels_per_row
-
-            x = screen.get_width() // 2 + (col - 2) * 60  # Center the grid
-            y = 150 + row * 40
-
-            # Determine color based on whether the level is cleared
-            if level_number <= max_level:
-                color = (255, 255, 255)  # White for cleared levels
-            else:
-                color = (160, 160, 160)  # Off-white for uncleared levels
-
-            # Highlight the selected level
-            if level_number == selected_level:
-                pygame.draw.rect(screen, (100, 100, 255), (x - 15, y - 15, 30, 30), 2)
-
-            # Highlight the current level with a box
-            if level_number == current_level:
-                pygame.draw.rect(screen, (255, 255, 0), (x - 20, y - 20, 40, 40), 2)
-
-            level_text = font.render(str(level_number), True, color)
-            level_rect = level_text.get_rect(center=(x, y))
-            screen.blit(level_text, level_rect)
-
-        pygame.display.flip()
-
-        # Event handling
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT and selected_level > 0:
-                    selected_level -= 1
-                    sfx['menu_click'].play()
-                elif event.key == pygame.K_RIGHT and selected_level < total_levels - 1:
-                    selected_level += 1
-                    sfx['menu_click'].play()
-                elif event.key == pygame.K_UP and selected_level >= levels_per_row:
-                    selected_level -= levels_per_row
-                    sfx['menu_click'].play()
-                elif event.key == pygame.K_DOWN and selected_level < total_levels - levels_per_row:
-                    selected_level += levels_per_row
-                    sfx['menu_click'].play()
-                elif event.key == pygame.K_RETURN:
-                    if selected_level <= max_level:
-                        sfx['menu_click'].play()
-                        return selected_level  # Return the selected level if it's cleared
-                elif event.key == pygame.K_ESCAPE:
-                    return current_level  # Return the current level if no selection was made
-
-        clock.tick(60)
-
 
 
 
 def about_menu(screen, clock, sfx):
     normal_font = pygame.font.Font(None, 20)
-    font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 20)
-    title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 40)
+    font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 20)
+    title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 40)
 
     while True:
         screen.fill((0, 0, 0, 180))  # Semi-transparent background
@@ -388,24 +354,55 @@ def about_menu(screen, clock, sfx):
 
 
 def pause_menu(screen, clock, current_level, max_level, assets=None, sfx=None, shared_background=None):
-    font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 20)
-    title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 48)
+    font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 20)
+    title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48)
     menu_items = ["Resume", "Main Menu", "Options", "Levels", "About", "Exit"]
     selected_item = 0
+    hovered_item = None
+    title_glow = 0
 
     while True:
+        title_glow += 0.1
         screen.fill((0, 0, 0, 180))  # Semi-transparent background
 
         # Draw the title "TRY-HARD"
-        title_text = title_font.render("TRY-HARD", True, (255, 255, 255))
+        title_color = (255, 255, 255)
+        title_text = title_font.render("TRY-HARD", True, title_color)
         title_rect = title_text.get_rect(center=(screen.get_width() // 2, 50))
         screen.blit(title_text, title_rect)
 
-        # Draw menu options
+        # Draw menu options with hover and selection effects
+        start_y = 150
+        item_height = 30
         for i, item in enumerate(menu_items):
-            color = (255, 255, 255) if i == selected_item else (160, 160, 160)
+            y_pos = start_y + i * item_height
+            base_y_pos = y_pos
+
+            # Check for hover effect
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            item_rect = pygame.Rect(screen.get_width() // 2 - 100, y_pos - 10, 200, 20)
+            is_hovered = item_rect.collidepoint(mouse_x, mouse_y)
+            if is_hovered:
+                hovered_item = i
+            elif hovered_item == i:
+                hovered_item = None
+
+            # Unified highlight system - hover takes priority
+            if i == hovered_item:
+                # Hover takes priority
+                blink_intensity = int(128 + 127 * math.sin(title_glow))
+                color = (blink_intensity, blink_intensity, blink_intensity)
+                selected_item = i  # Update selection to hovered item
+            elif i == selected_item:
+                # Blink effect for keyboard selection
+                blink_intensity = int(128 + 127 * math.sin(title_glow))
+                color = (blink_intensity, blink_intensity, blink_intensity)
+            else:
+                color = (160, 160, 160)
+
+            # Render text
             text = font.render(item, True, color)
-            text_rect = text.get_rect(center=(screen.get_width() // 2, 150 + i * 30))
+            text_rect = text.get_rect(center=(screen.get_width() // 2, y_pos))
             screen.blit(text, text_rect)
 
         pygame.display.flip()
@@ -442,5 +439,31 @@ def pause_menu(screen, clock, current_level, max_level, assets=None, sfx=None, s
                         sys.exit()
                 elif event.key == pygame.K_ESCAPE:  # Escape to resume game
                     return current_level
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left click
+                    mouse_x, mouse_y = event.pos
+                    for i, item in enumerate(menu_items):
+                        y_pos = start_y + i * item_height
+                        item_rect = pygame.Rect(screen.get_width() // 2 - 100, y_pos - 10, 200, 20)
+                        if item_rect.collidepoint(mouse_x, mouse_y):
+                            selected_item = i
+                            sfx['menu_click'].play()
+                            if selected_item == 0:  # Resume
+                                return current_level
+                            elif selected_item == 1:  # Main Menu
+                                return "menu"
+                            elif selected_item == 2:  # Options
+                                return options_menu(screen, clock, current_level, max_level, assets, sfx, shared_background)
+                            elif selected_item == 3:  # Levels
+                                return levels_menu(screen, clock, current_level, max_level, sfx)
+                            elif selected_item == 4:  # About
+                                if assets and sfx and shared_background:
+                                    about_screen(screen, clock, assets, sfx, shared_background)
+                                else:
+                                    about_menu(screen, clock, sfx)
+                            elif selected_item == 5:  # Exit
+                                pygame.quit()
+                                sys.exit()
 
         clock.tick(60)

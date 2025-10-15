@@ -4,13 +4,14 @@ import math
 import random
 import pygame
 import json
-from scripts.utils import load_image, load_images, Animation
+from scripts.utils import load_image, load_images, Animation, resource_path
 from scripts.entities import PhysicsEntity, Player, Enemy
 from scripts.tilemap import Tilemap
 from scripts.clouds import Clouds
 from scripts.particle import Particle
 from scripts.spark import Spark
-from scripts.pause import pause_menu, options_menu, levels_menu
+from scripts.pause import pause_menu, options_menu
+from scripts.levels_menu import levels_menu
 from scripts.main_menu import main_menu
 from scripts.save_select import save_select
 from scripts.level_select import level_select
@@ -85,12 +86,12 @@ class Game:
         }
 
         self.sfx = {
-            'jump': pygame.mixer.Sound('data/sfx/jump.wav'),
-            'dash': pygame.mixer.Sound('data/sfx/dash.wav'),
-            'hit': pygame.mixer.Sound('data/sfx/hit.wav'),
-            'shoot': pygame.mixer.Sound('data/sfx/shoot.wav'),
-            'ambience': pygame.mixer.Sound('data/sfx/ambience.wav'),
-            'menu_click': pygame.mixer.Sound('data/menu.wav'),
+            'jump': pygame.mixer.Sound(resource_path('data/sfx/jump.wav')),
+            'dash': pygame.mixer.Sound(resource_path('data/sfx/dash.wav')),
+            'hit': pygame.mixer.Sound(resource_path('data/sfx/hit.wav')),
+            'shoot': pygame.mixer.Sound(resource_path('data/sfx/shoot.wav')),
+            'ambience': pygame.mixer.Sound(resource_path('data/sfx/ambience.wav')),
+            'menu_click': pygame.mixer.Sound(resource_path('data/menu.wav')),
         }
 
         self.sfx['ambience'].set_volume(0.2)
@@ -112,7 +113,7 @@ class Game:
 
         self.screenshake = 0
 
-        font_path = 'data/fonts/ninjaline/NinjaLine.ttf'
+        font_path = resource_path('data/fonts/ninjaline/NinjaLine.ttf')
         self.font = pygame.font.Font(font_path, 20)
 
         self.death_counter = 0  # Initialize death counter
@@ -171,7 +172,7 @@ class Game:
         self.transition = 0  # Reset transition
         self.level = map_id
         self.max_level = max(self.max_level, map_id)
-        self.tilemap.load('data/maps/' + str(map_id) + '.json')
+        self.tilemap.load(resource_path('data/maps/' + str(map_id) + '.json'))
 
         self.leaf_spawners = []
         for tree in self.tilemap.extract([('large_decor', 2)], keep=True):
@@ -266,7 +267,7 @@ class Game:
         return True
     
     def run(self):
-        pygame.mixer.music.load('data/music.wav')
+        pygame.mixer.music.load(resource_path('data/music.wav'))
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play(-1)
 
@@ -331,7 +332,7 @@ class Game:
                 if not len(self.enemies):
                     self.transition += 1
                     if self.transition > 30:
-                        self.level = min(self.level + 1, len(os.listdir('data/maps')))
+                        self.level = min(self.level + 1, len(os.listdir(resource_path('data/maps'))))
                         self.max_level = max(self.max_level, self.level)
                         self.load_level(self.level)
                 if self.transition < 0:
@@ -470,7 +471,7 @@ class Game:
 
                 enemies_left = len(self.enemies)  # Get the number of enemies left
 
-                small_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 14)
+                small_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 14)
                 enemies_text = small_font.render("Enemies Left:", True, (0, 0, 0))
                 enemies_count_text = small_font.render(str(enemies_left), True, (0, 0, 0))
 

@@ -2,6 +2,7 @@ import pygame
 import json
 import sys
 import math
+from scripts.utils import resource_path
 
 def render_text_with_outline(surface, font, text, color, position, outline_color=(0, 0, 0)):
     """Renders text with an outline."""
@@ -28,7 +29,7 @@ def keybindings_menu(screen, clock, assets, sfx, shared_background):
             'dash': 'left shift'
         }
 
-    font_path = 'data/fonts/ninjaline/NinjaLine.ttf'
+    font_path = resource_path('data/fonts/ninjaline/NinjaLine.ttf')
     title_font = pygame.font.Font(font_path, 40)
     option_font = pygame.font.Font(font_path, 22)
 

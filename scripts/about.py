@@ -2,11 +2,12 @@ import pygame
 import sys
 import math
 from scripts.shared_background import SharedBackground
+from scripts.utils import resource_path
 
 pygame.init()
 pygame.mixer.init()
 
-click_sound = pygame.mixer.Sound('data/menu.wav')
+click_sound = pygame.mixer.Sound(resource_path('data/menu.wav'))
 click_sound.set_volume(0.2)
 
 class AboutScreen:
@@ -17,9 +18,9 @@ class AboutScreen:
         self.sfx = sfx
         
         # Fonts
-        self.title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 32)
-        self.subtitle_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 18)
-        self.text_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 14)
+        self.title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 32)
+        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 18)
+        self.text_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 14)
         
         # Animation and scroll variables
         self.title_glow = 0

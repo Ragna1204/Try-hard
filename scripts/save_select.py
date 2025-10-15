@@ -5,6 +5,7 @@ import random
 import json
 import os
 from scripts.shared_background import SharedBackground
+from scripts.utils import resource_path
 
 pygame.init()
 pygame.mixer.init()
@@ -17,10 +18,10 @@ class SaveSelect:
         self.assets = assets
         self.sfx = sfx
 
-        self.title_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 32)
-        self.save_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 16)
-        self.small_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 12)
-        self.level_font = pygame.font.Font('data/fonts/ninjaline/NinjaLine.ttf', 24)
+        self.title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 32)
+        self.save_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 16)
+        self.small_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 12)
+        self.level_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 24)
 
         self.save_slots = []
         self.selected_slot = 0
@@ -207,13 +208,13 @@ class SaveSelect:
 
             if self.confirming_delete != -1:
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_a or event.key == pygame.K_LEFT:
+                    if event.key in [pygame.K_a, pygame.K_LEFT]:
                         self.confirm_selection = (self.confirm_selection - 1 + 2) % 2
                         self.sfx['menu_click'].play()
-                    elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
+                    elif event.key in [pygame.K_d, pygame.K_RIGHT]:
                         self.confirm_selection = (self.confirm_selection + 1) % 2
                         self.sfx['menu_click'].play()
-                    elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                    elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
                         if self.confirm_selection == 0:  # Yes
                             try:
                                 os.remove(self.save_slots[self.confirming_delete]['file_path'])
@@ -225,26 +226,42 @@ class SaveSelect:
                         self.confirm_selection = 0
                     elif event.key == pygame.K_ESCAPE:
                         self.confirming_delete = -1
+                        self.confirm_selection = 0
+
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mouse_x, mouse_y = event.pos
+                    if self.confirm_yes_rect and self.confirm_yes_rect.collidepoint(mouse_x, mouse_y):
+                        try:
+                            os.remove(self.save_slots[self.confirming_delete]['file_path'])
+                        except OSError:
+                            pass
+                        self.load_save_data()
+                        self.sfx['menu_click'].play()
+                        self.confirming_delete = -1
+                        self.confirm_selection = 0
+                    elif self.confirm_no_rect and self.confirm_no_rect.collidepoint(mouse_x, mouse_y):
+                        self.confirming_delete = -1
+                        self.confirm_selection = 0
                 continue
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_a or event.key == pygame.K_LEFT:
+                if event.key in [pygame.K_a, pygame.K_LEFT]:
                     self.selected_slot = (self.selected_slot - 1 + 4) % 4
                     self.selected_button = 0
                     self.sfx['menu_click'].play()
-                elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
+                elif event.key in [pygame.K_d, pygame.K_RIGHT]:
                     self.selected_slot = (self.selected_slot + 1) % 4
                     self.selected_button = 0
                     self.sfx['menu_click'].play()
-                elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
+                elif event.key in [pygame.K_s, pygame.K_DOWN]:
                     if self.save_slots[self.selected_slot]['exists']:
                         self.selected_button = (self.selected_button + 1) % 2
                         self.sfx['menu_click'].play()
-                elif event.key == pygame.K_w or event.key == pygame.K_UP:
+                elif event.key in [pygame.K_w, pygame.K_UP]:
                     if self.save_slots[self.selected_slot]['exists']:
                         self.selected_button = (self.selected_button - 1 + 2) % 2
                         self.sfx['menu_click'].play()
-                elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
                     if self.selected_button == 0:  # Slot selected
                         self.sfx['menu_click'].play()
                         return self.selected_slot
