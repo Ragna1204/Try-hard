@@ -17,10 +17,10 @@ class MainMenu:
         self.sfx = sfx
         
         # Fonts
-        self.title_font = pygame.font.Font(resource_path('data/fonts/Cinzel/static/Cinzel-Medium.ttf'), 48) # Keep Cinzel for titles
-        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/exo2/static/Exo2-Regular.ttf'), 24)
-        self.menu_font = pygame.font.Font(resource_path('data/fonts/exo2/static/Exo2-Regular.ttf'), 20)
-        self.small_font = pygame.font.Font(resource_path('data/fonts/exo2/static/Exo2-Regular.ttf'), 16)
+        self.title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48) # Revert to original NinjaLine
+        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 24)
+        self.menu_font = pygame.font.Font(resource_path('data/fonts/Aldrich/Aldrich-Regular.ttf'), 22) # Try bolder Aldrich for menu
+        self.small_font = pygame.font.Font(resource_path('data/fonts/Teko/static/Teko-Regular.ttf'), 16)
         
         # Menu state
         self.selected_item = 0
@@ -87,7 +87,7 @@ class MainMenu:
         self.menu_animation += 0.05
 
         start_y = 110
-        item_height = 25
+        item_height = 28  # Increased spacing for larger font
         for i, item in enumerate(self.menu_items):
             y_pos = start_y + i * item_height
             base_y_pos = y_pos
@@ -229,7 +229,7 @@ class MainMenu:
                 if event.button == 1:  # Left click
                     mouse_x, mouse_y = event.pos
                     start_y = 110
-                    item_height = 25
+                    item_height = 28  # Match the updated spacing
                     for i, item in enumerate(self.menu_items):
                         y_pos = start_y + i * item_height
                         item_rect = pygame.Rect(self.screen.get_width() // 2 - 100, y_pos - 10, 200, 20)

@@ -354,8 +354,8 @@ def about_menu(screen, clock, sfx):
 
 
 def pause_menu(screen, clock, current_level, max_level, assets=None, sfx=None, shared_background=None):
-    font = pygame.font.Font(resource_path('data/fonts/exo2/static/Exo2-Regular.ttf'), 20)
-    title_font = pygame.font.Font(resource_path('data/fonts/Cinzel/static/Cinzel-Medium.ttf'), 48)
+    font = pygame.font.Font(resource_path('data/fonts/Aldrich/Aldrich-Regular.ttf'), 20) # Try Aldrich for pause menu
+    title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48) # Revert to original
     menu_items = ["Resume", "Main Menu", "Options", "Levels", "About", "Exit"]
     selected_item = 0
     hovered_item = None
