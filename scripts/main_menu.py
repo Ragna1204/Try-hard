@@ -17,10 +17,10 @@ class MainMenu:
         self.sfx = sfx
         
         # Fonts
-        self.title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48)
-        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 24)
-        self.menu_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 20)
-        self.small_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 16)
+        self.title_font = pygame.font.Font(resource_path('data/fonts/Cinzel/static/Cinzel-Medium.ttf'), 48) # Keep Cinzel for titles
+        self.subtitle_font = pygame.font.Font(resource_path('data/fonts/exo2/static/Exo2-Regular.ttf'), 24)
+        self.menu_font = pygame.font.Font(resource_path('data/fonts/exo2/static/Exo2-Regular.ttf'), 20)
+        self.small_font = pygame.font.Font(resource_path('data/fonts/exo2/static/Exo2-Regular.ttf'), 16)
         
         # Menu state
         self.selected_item = 0
