@@ -10,9 +10,204 @@ from scripts.utils import resource_path
 pygame.init()
 pygame.mixer.init()
 
+
+def confirmation_dialog(screen, clock, message, assets=None, sfx=None, shared_background=None):
+    """
+    Generic confirmation dialog with Yes/No options.
+    Returns True for Yes, False for No
+    """
+    font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 24)
+    title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 32)
+    dialog_width = 450
+    dialog_height = 220
+    dialog_x = (screen.get_width() - dialog_width) // 2
+    dialog_y = (screen.get_height() - dialog_height) // 2
+
+    options = ["Yes", "No"]
+    selected_item = 1  # Start with No selected for safety
+    hovered_item = None
+    title_glow = 0
+
+    # Create shared background if not provided
+    if not shared_background and assets:
+        shared_background = SharedBackground(assets)
+
+    # Pre-calculate static effects to eliminate per-frame lag
+    # Create vignette surface once
+    vignette = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+    center_x, center_y = screen.get_width() // 2, screen.get_height() // 2
+    max_distance = math.sqrt(center_x**2 + center_y**2)
+
+    # Optimized vignette creation using circular gradients
+    for radius in range(0, int(max_distance), 2):
+        alpha = int(100 * (radius / max_distance))
+        if alpha > 255:
+            alpha = 255
+        pygame.draw.circle(vignette, (0, 0, 0, alpha), (center_x, center_y), radius, 2)
+
+    # Pre-calculate dialog background gradient
+    dialog_bg = pygame.Surface((dialog_width, dialog_height), pygame.SRCALPHA)
+    for i in range(dialog_height):
+        alpha = int(220 + 35 * math.sin(i * math.pi / dialog_height))
+        red_intensity = int(20 + 25 * math.sin(i * math.pi / dialog_height))
+        pygame.draw.line(dialog_bg, (red_intensity, 0, 0, alpha), (0, i), (dialog_width, i))
+
+    # Pre-calculate border glow
+    border_glow = pygame.Surface((dialog_width + 8, dialog_height + 8), pygame.SRCALPHA)
+    pygame.draw.rect(border_glow, (255, 50, 50, 100),
+                    (0, 0, dialog_width + 8, dialog_height + 8), 0, border_radius=12)
+
+    # Pre-calculate inner shadow
+    inner_shadow = pygame.Surface((dialog_width - 8, dialog_height - 8), pygame.SRCALPHA)
+    for i in range(dialog_height - 8):
+        alpha = max(0, int(35 * (1 - i / (dialog_height - 8))))
+        pygame.draw.line(inner_shadow, (0, 0, 0, alpha), (0, i), (dialog_width - 8, i))
+
+    while True:
+        title_glow += 0.1
+
+        # Clear screen
+        screen.fill((0, 0, 0))
+
+        # Render parallax background if available
+        if shared_background:
+            shared_background.render_background(screen)
+            shared_background.render_particles(screen)
+            shared_background.update()
+
+        # Create elegant semi-transparent overlay (simplified)
+        overlay = pygame.Surface(screen.get_size())
+        overlay.fill((0, 0, 0))
+        overlay.set_alpha(160)
+        screen.blit(overlay, (0, 0))
+
+        # Blit pre-calculated vignette
+        screen.blit(vignette, (0, 0))
+
+        # Blit pre-calculated effects
+        screen.blit(border_glow, (dialog_x - 4, dialog_y - 4))
+        screen.blit(dialog_bg, (dialog_x, dialog_y))
+        screen.blit(inner_shadow, (dialog_x + 4, dialog_y + 4))
+
+        # Draw red border with rounded corners
+        border_color = (200, 50, 50)  # Dark red border
+        pygame.draw.rect(screen, border_color, (dialog_x, dialog_y, dialog_width, dialog_height), 2, border_radius=8)
+
+        # Draw centered warning/exclamation icon at top with red glow
+        icon_text = title_font.render("!", True, (255, 100, 100))  # Red exclamation
+        icon_rect = icon_text.get_rect(center=(dialog_x + dialog_width // 2, dialog_y + 15 + 12))
+        screen.blit(icon_text, icon_rect)
+
+        # Draw message with better spacing
+        message_lines = message.split('\n')
+        y_offset = dialog_y + 50
+        for line in message_lines:
+            msg_text = font.render(line, True, (240, 240, 250))
+            msg_rect = msg_text.get_rect(center=(screen.get_width() // 2, y_offset))
+            screen.blit(msg_text, msg_rect)
+            y_offset += 32
+
+        # Draw elegant option buttons
+        start_y = dialog_y + 160
+        item_spacing = 100
+        button_width = 80
+        button_height = 32
+
+        for i, option in enumerate(options):
+            x_pos = dialog_x + dialog_width // 2 + (i - 0.5) * item_spacing
+
+            # Create button background
+            button_rect = pygame.Rect(x_pos - button_width // 2, start_y - button_height // 2, button_width, button_height)
+            is_hovered = button_rect.collidepoint(pygame.mouse.get_pos())
+
+            # Update hover state immediately (no prev_hovered tracking for performance)
+            prev_hovered = hovered_item
+            hovered_item = i if is_hovered else hovered_item if hovered_item == i else None
+
+            # Play sound only when entering a new hover (simplified for performance)
+            if prev_hovered != hovered_item and hovered_item is not None and prev_hovered is None:
+                if sfx:
+                    sfx['menu_click'].play()
+
+            # Update selection to hovered item immediately
+            if hovered_item is not None:
+                selected_item = hovered_item
+
+            # Red/black button styling
+            if i == selected_item or i == hovered_item:
+                if selected_item == i and hovered_item == i:
+                    # Both selected and hovered - brightest red
+                    button_color = (180, 60, 60, 240)
+                    glow_color = (255, 100, 100, 120)
+                elif selected_item == i:
+                    # Selected only
+                    button_color = (140, 40, 40, 230)
+                    glow_color = (220, 80, 80, 100)
+                else:
+                    # Hovered only
+                    button_color = (160, 50, 50, 235)
+                    glow_color = (240, 90, 90, 110)
+            else:
+                button_color = (60, 20, 20, 220)
+                glow_color = (0, 0, 0, 0)
+
+            # Draw button glow (simplified)
+            if glow_color[3] > 0:
+                pygame.draw.rect(screen, glow_color, button_rect.inflate(6, 6), border_radius=8)
+
+            # Draw button background
+            pygame.draw.rect(screen, button_color, button_rect, border_radius=6)
+
+            # Draw red/black button border
+            border_color = (255, 150, 150) if i == selected_item else (150, 50, 50)
+            pygame.draw.rect(screen, border_color, button_rect, 1, border_radius=6)
+
+            # Draw option text
+            text_color = (255, 255, 255) if i == selected_item or i == hovered_item else (220, 220, 230)
+            option_text = font.render(option, True, text_color)
+            option_rect = option_text.get_rect(center=(x_pos, start_y))
+            screen.blit(option_text, option_rect)
+
+        pygame.display.flip()
+
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False  # Treat quit as No
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    selected_item = (selected_item - 1) % len(options)
+                    hovered_item = None  # Reset hover when using keyboard
+                    if sfx:
+                        sfx['menu_click'].play()
+                elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    selected_item = (selected_item + 1) % len(options)
+                    hovered_item = None  # Reset hover when using keyboard
+                    if sfx:
+                        sfx['menu_click'].play()
+                elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                    if sfx:
+                        sfx['menu_click'].play()
+                    return selected_item == 0  # Yes = True, No = False
+                elif event.key == pygame.K_ESCAPE:
+                    return False  # ESC = No
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left click
+                    mouse_x, mouse_y = event.pos
+                    for i, option in enumerate(options):
+                        x_pos = dialog_x + dialog_width // 2 + (i - 0.5) * item_spacing
+                        button_rect = pygame.Rect(x_pos - button_width // 2, start_y - button_height // 2, button_width, button_height)
+                        if button_rect.collidepoint(mouse_x, mouse_y):
+                            if sfx:
+                                sfx['menu_click'].play()
+                            return i == 0  # Yes = True, No = False
+
+        clock.tick(60)
+
 def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None, shared_background=None):
-    font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 20)
-    title_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 40)
+    font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 20)
+    title_font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 40)
     options_items = ["Key-bindings", "Volume", "Back"]
     selected_item = 0
     hovered_item = None
@@ -104,11 +299,13 @@ def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None,
                     if selected_item == 0:  # Key-bindings
                         keybindings_menu(screen, clock, assets, sfx, shared_background)
                     elif selected_item == 1:  # Volume
-                        volume_menu(screen, clock, sfx, shared_background)
+                        volume_result = volume_menu(screen, clock, sfx, shared_background)
+                        if volume_result != "back":
+                            return volume_result  # shouldn't happen, but handle
                     elif selected_item == 2:  # Back
-                        return current_level
+                        return "back"
                 elif event.key == pygame.K_ESCAPE:  # Escape to go back
-                    return current_level
+                    return "back"
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
@@ -118,11 +315,15 @@ def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None,
                         item_rect = pygame.Rect(screen.get_width() // 2 - 100, y_pos - 10, 200, 20)
                         if item_rect.collidepoint(mouse_x, mouse_y):
                             if i == 0:  # Key-bindings
-                                keybindings_menu(screen, clock, assets, sfx, shared_background)
+                                result = keybindings_menu(screen, clock, assets, sfx, shared_background)
+                                if result != "back":
+                                    return result  # handle if not back
                             elif i == 1:  # Volume
-                                volume_menu(screen, clock, sfx, shared_background)
+                                volume_result = volume_menu(screen, clock, sfx, shared_background)
+                                if volume_result != "back":
+                                    return volume_result
                             elif i == 2:  # Back
-                                return current_level
+                                return "back"
                             break
 
         clock.tick(60)
@@ -130,9 +331,9 @@ def options_menu(screen, clock, current_level, max_level, assets=None, sfx=None,
 
 def volume_menu(screen, clock, sfx, shared_background=None):
     """Volume control menu with sliders for music and effects"""
-    font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 20)
-    title_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 40)
-    small_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 16)
+    font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 20)
+    title_font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 40)
+    small_font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 16)
 
     # Initialize base volumes if not already done
     if not hasattr(volume_menu, 'base_sfx_volumes'):
@@ -255,7 +456,7 @@ def volume_menu(screen, clock, sfx, shared_background=None):
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    return
+                    return "back"
                 if event.key == pygame.K_w or event.key == pygame.K_UP:
                     selected_slider = (selected_slider - 1) % 2
                     sfx['menu_click'].play()
@@ -317,8 +518,8 @@ def volume_menu(screen, clock, sfx, shared_background=None):
 
 def about_menu(screen, clock, sfx):
     normal_font = pygame.font.Font(None, 20)
-    font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 20)
-    title_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 40)
+    font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 20)
+    title_font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 40)
 
     while True:
         screen.fill((0, 0, 0, 180))  # Semi-transparent background
@@ -348,13 +549,13 @@ def about_menu(screen, clock, sfx):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     sfx['menu_click'].play()                    # Pressing ESC will return to pause menu
-                    return
+                    return "back"
 
         clock.tick(60)
 
 
 def pause_menu(screen, clock, current_level, max_level, assets=None, sfx=None, shared_background=None):
-    font = pygame.font.Font(resource_path('data/fonts/AmaticSC/AmaticSC-Bold.ttf'), 28) # Use AmaticSC Bold for pause menu options
+    font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 28) # Use Protest_Revolution for pause menu options
     title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48) # Use NinjaLine for title consistency
     menu_items = ["Resume", "Main Menu", "Options", "Levels", "About", "Exit"]
     selected_item = 0
@@ -432,19 +633,31 @@ def pause_menu(screen, clock, current_level, max_level, assets=None, sfx=None, s
                     if selected_item == 0:  # Resume
                         return current_level
                     elif selected_item == 1:  # Main Menu
-                        return "menu"
+                        confirmed = confirmation_dialog(screen, clock, "Return to Main Menu?\nUnsaved progress will be lost.", assets, sfx, shared_background)
+                        if confirmed:
+                            return "menu"
                     elif selected_item == 2:  # Options
-                        return options_menu(screen, clock, current_level, max_level, assets, sfx, shared_background)
+                        result = options_menu(screen, clock, current_level, max_level, assets, sfx, shared_background)
+                        if result != "back":
+                            return result
                     elif selected_item == 3:  # Levels
-                        return levels_menu(screen, clock, current_level, max_level, sfx)
+                        result = levels_menu(screen, clock, current_level, max_level, sfx)
+                        if result != "back":
+                            return result
                     elif selected_item == 4:  # About
                         if assets and sfx and shared_background:
-                            about_screen(screen, clock, assets, sfx, shared_background)
+                            result = about_screen(screen, clock, assets, sfx, shared_background)
+                            if result != "back":
+                                return result  # could be "exit"
                         else:
-                            about_menu(screen, clock, sfx)
+                            result = about_menu(screen, clock, sfx)
+                            if result != "back":
+                                return result
                     elif selected_item == 5:  # Exit
-                        pygame.quit()
-                        sys.exit()
+                        confirmed = confirmation_dialog(screen, clock, "Exit the game?\nUnsaved progress will be lost.", assets, sfx, shared_background)
+                        if confirmed:
+                            pygame.quit()
+                            sys.exit()
                 elif event.key == pygame.K_ESCAPE:  # Escape to resume game
                     return current_level
 
@@ -460,18 +673,30 @@ def pause_menu(screen, clock, current_level, max_level, assets=None, sfx=None, s
                             if selected_item == 0:  # Resume
                                 return current_level
                             elif selected_item == 1:  # Main Menu
-                                return "menu"
+                                confirmed = confirmation_dialog(screen, clock, "Return to Main Menu?\nUnsaved progress will be lost.", assets, sfx, shared_background)
+                                if confirmed:
+                                    return "menu"
                             elif selected_item == 2:  # Options
-                                return options_menu(screen, clock, current_level, max_level, assets, sfx, shared_background)
+                                result = options_menu(screen, clock, current_level, max_level, assets, sfx, shared_background)
+                                if result != "back":
+                                    return result
                             elif selected_item == 3:  # Levels
-                                return levels_menu(screen, clock, current_level, max_level, sfx)
+                                result = levels_menu(screen, clock, current_level, max_level, sfx)
+                                if result != "back":
+                                    return result
                             elif selected_item == 4:  # About
                                 if assets and sfx and shared_background:
-                                    about_screen(screen, clock, assets, sfx, shared_background)
+                                    result = about_screen(screen, clock, assets, sfx, shared_background)
+                                    if result != "back":
+                                        return result  # could be "exit"
                                 else:
-                                    about_menu(screen, clock, sfx)
+                                    result = about_menu(screen, clock, sfx)
+                                    if result != "back":
+                                        return result
                             elif selected_item == 5:  # Exit
-                                pygame.quit()
-                                sys.exit()
+                                confirmed = confirmation_dialog(screen, clock, "Exit the game?\nUnsaved progress will be lost.", assets, sfx, shared_background)
+                                if confirmed:
+                                    pygame.quit()
+                                    sys.exit()
 
         clock.tick(60)

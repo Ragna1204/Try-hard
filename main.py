@@ -466,21 +466,58 @@ class Game:
 
                 self.display_2.blit(self.display, (0, 0))
 
-                level_text = self.font.render(f"Level: {self.level}", True, (0, 0, 0))
-                self.display_2.blit(level_text, (5, 5))
+                # Game screen HUD with Protest_Revolution font - black labels, dark bright red numbers
+                ui_font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 18)
+
+                # Level display at top-left with black labels and dark bright red numbers with thin black padding
+                level_label = ui_font.render("Level:", True, (0, 0, 0))
+                level_number = ui_font.render(str(self.level), True, (255, 50, 50))
+
+                # Position level display
+                level_label_pos = (10, 10)
+                level_number_pos = (level_label_pos[0] + level_label.get_width() + 5, level_label_pos[1])
+
+                # Add thin black outline around number
+                for offset in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    outline_text = ui_font.render(str(self.level), True, (0, 0, 0))
+                    self.display_2.blit(outline_text, (level_number_pos[0] + offset[0], level_number_pos[1] + offset[1]))
+
+                self.display_2.blit(level_label, level_label_pos)
+                self.display_2.blit(level_number, level_number_pos)
 
                 enemies_left = len(self.enemies)  # Get the number of enemies left
 
-                small_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 14)
-                enemies_text = small_font.render("Enemies Left:", True, (0, 0, 0))
-                enemies_count_text = small_font.render(str(enemies_left), True, (0, 0, 0))
+                # Enemies display at top-right with black labels and dark bright red numbers with thin black padding
+                enemies_label = ui_font.render("Enemies:", True, (0, 0, 0))
+                enemies_number = ui_font.render(str(enemies_left), True, (255, 50, 50))
 
-                death_counter_text = self.font.render(f"Deaths: {self.death_counter}", True, (0, 0, 0))
-                self.display_2.blit(death_counter_text, (5, self.display_2.get_height() - 30))
+                # Position enemies display
+                enemies_label_x = self.display_2.get_width() - enemies_label.get_width() - enemies_number.get_width() - 15
+                enemies_number_x = enemies_label_x + enemies_label.get_width() + 5
 
-                # Positioning the text for a line break
-                self.display_2.blit(enemies_text, (self.display_2.get_width() - enemies_text.get_width() - 5, 5))
-                self.display_2.blit(enemies_count_text, (self.display_2.get_width() - enemies_count_text.get_width() - 10, 10 + enemies_text.get_height()))
+                # Add thin black outline around enemy count
+                for offset in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    outline_text = ui_font.render(str(enemies_left), True, (0, 0, 0))
+                    self.display_2.blit(outline_text, (enemies_number_x + offset[0], 10 + offset[1]))
+
+                self.display_2.blit(enemies_label, (enemies_label_x, 10))
+                self.display_2.blit(enemies_number, (enemies_number_x, 10))
+
+                # Death counter at bottom-left with black labels and dark bright red numbers with thin black padding
+                death_label = ui_font.render("Deaths:", True, (0, 0, 0))
+                death_number = ui_font.render(str(self.death_counter), True, (255, 50, 50))
+
+                # Position death counter
+                death_label_pos = (10, self.display_2.get_height() - 28)
+                death_number_pos = (death_label_pos[0] + death_label.get_width() + 5, death_label_pos[1])
+
+                # Add thin black outline around death count
+                for offset in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    outline_text = ui_font.render(str(self.death_counter), True, (0, 0, 0))
+                    self.display_2.blit(outline_text, (death_number_pos[0] + offset[0], death_number_pos[1] + offset[1]))
+
+                self.display_2.blit(death_label, death_label_pos)
+                self.display_2.blit(death_number, death_number_pos)
 
 
                 screenshake_offset = (random.random() * self.screenshake - self.screenshake / 2, random.random() * self.screenshake - self.screenshake / 2)

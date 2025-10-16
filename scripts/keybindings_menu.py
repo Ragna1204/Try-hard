@@ -29,7 +29,7 @@ def keybindings_menu(screen, clock, assets, sfx, shared_background):
             'dash': 'left shift'
         }
 
-    font_path = resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf')
+    font_path = resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf')
     title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 40)
     option_font = pygame.font.Font(font_path, 22)
 

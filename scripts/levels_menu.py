@@ -5,9 +5,9 @@ from scripts.utils import resource_path
 def levels_menu(screen, clock, current_level, max_level, sfx):
     import math
     import random
-    font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 28)
+    font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 28)
     title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48)
-    small_font = pygame.font.Font(resource_path('data/fonts/Fruktur/Fruktur-Regular.ttf'), 16)
+    small_font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 16)
 
     levels_per_row = 5
     total_levels = 10  # Adjust this to match your total number of levels
@@ -198,7 +198,7 @@ def levels_menu(screen, clock, current_level, max_level, sfx):
                         sfx['menu_click'].play()
                         return selected_level  # Return the selected level if it's cleared
                 elif event.key == pygame.K_ESCAPE:
-                    return current_level  # Return the current level if no selection was made
+                    return "back"  # Return to pause menu
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
