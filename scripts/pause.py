@@ -100,7 +100,7 @@ def confirmation_dialog(screen, clock, message, assets=None, sfx=None, shared_ba
 
         # Draw message with better spacing
         message_lines = message.split('\n')
-        y_offset = dialog_y + 50
+        y_offset = dialog_y + 70  # Shift down to avoid overlapping with "!"
         for line in message_lines:
             msg_text = font.render(line, True, (240, 240, 250))
             msg_rect = msg_text.get_rect(center=(screen.get_width() // 2, y_offset))
@@ -120,12 +120,17 @@ def confirmation_dialog(screen, clock, message, assets=None, sfx=None, shared_ba
             button_rect = pygame.Rect(x_pos - button_width // 2, start_y - button_height // 2, button_width, button_height)
             is_hovered = button_rect.collidepoint(pygame.mouse.get_pos())
 
-            # Update hover state immediately (no prev_hovered tracking for performance)
+            # Track previous hover state for sound logic
             prev_hovered = hovered_item
-            hovered_item = i if is_hovered else hovered_item if hovered_item == i else None
 
-            # Play sound only when entering a new hover (simplified for performance)
-            if prev_hovered != hovered_item and hovered_item is not None and prev_hovered is None:
+            # Update hover state - if hovering this button, set it, otherwise clear if it was this button
+            if is_hovered:
+                hovered_item = i
+            elif hovered_item == i:
+                hovered_item = None
+
+            # Play sound only once when entering a new hover state
+            if prev_hovered != hovered_item and hovered_item == i and prev_hovered is None:
                 if sfx:
                     sfx['menu_click'].play()
 
