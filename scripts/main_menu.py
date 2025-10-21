@@ -217,7 +217,8 @@ def confirmation_dialog(screen, clock, message, assets=None, sfx=None, shared_ba
     Use the optimized confirmation dialog - calls the main implementation from pause.py
     """
     # Import and use the optimized dialog from pause.py
-    return __import__('scripts.pause').confirmation_dialog(screen, clock, message, assets, sfx, shared_background)
+    import scripts.pause
+    return scripts.pause.confirmation_dialog(screen, clock, message, assets, sfx, shared_background)
 
 
 def main_menu(screen, clock, assets, sfx, shared_background=None):
