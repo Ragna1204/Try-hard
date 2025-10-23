@@ -129,4 +129,4 @@ The game expects a specific asset structure under `data/images/`:
 - Particle sprites for effects
 - UI elements (gun, projectile sprites)
 
-Game saves progress to `savefile.json` in the root directory and requires all audio files to be present for proper sound functionality.
+Game saves progress to `saves/savefile_*.json` in the saves directory and requires all audio files to be present for proper sound functionality.

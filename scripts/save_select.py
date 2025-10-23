@@ -44,7 +44,7 @@ class SaveSelect:
     def load_save_data(self):
         self.save_slots = []
         for i in range(4):
-            save_file = f"savefile_{i+1}.json"
+            save_file = f"saves/savefile_{i+1}.json"
             try:
                 if os.path.exists(save_file):
                     with open(save_file, "r") as f:

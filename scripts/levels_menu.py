@@ -9,8 +9,8 @@ def levels_menu(screen, clock, current_level, max_level, sfx):
     title_font = pygame.font.Font(resource_path('data/fonts/ninjaline/NinjaLine.ttf'), 48)
     small_font = pygame.font.Font(resource_path('data/fonts/Protest_Revolution/ProtestRevolution-Regular.ttf'), 16)
 
-    levels_per_row = 5
-    total_levels = 10  # Adjust this to match your total number of levels
+    levels_per_row = 4  # Changed to 4 for better layout
+    total_levels = 8  # Match actual game levels
     selected_level = current_level
     hovered_level = None
     title_glow = 0
@@ -48,7 +48,7 @@ def levels_menu(screen, clock, current_level, max_level, sfx):
             row = i // levels_per_row
             col = i % levels_per_row
 
-            base_x = screen.get_width() // 2 + (col - 2) * 70  # Horizontal spacing
+            base_x = screen.get_width() // 2 + (col - 1.5) * 70  # Horizontal spacing - centered for 4 columns
             base_y = 110 + row * 100  # More vertical gap between rows
 
             # Animation calculations
@@ -85,7 +85,11 @@ def levels_menu(screen, clock, current_level, max_level, sfx):
             base_color = (255, 255, 255) if level_info['unlocked'] else (100, 100, 100)
             scale = 1.0
 
-            if is_active:
+            if is_current:
+                # Make current level pop out by being larger
+                scale = 1.3
+                color = (255, 255, 100)  # Golden color for current
+            elif is_active:
                 # Pulsing scale effect for active levels with crimson energy
                 pulse_rate = 0.2
                 scale = 1.0 + 0.15 * math.sin(animation_time * pulse_rate)
@@ -99,8 +103,9 @@ def levels_menu(screen, clock, current_level, max_level, sfx):
             if is_active:
                 button_color = (120, 120, 120)
 
-            # Updated button size (smaller)
-            button_radius = 28
+            # Calculate button radius with scale
+            base_button_radius = 28
+            button_radius = int(base_button_radius * scale)
 
             # Draw button shadow
             pygame.draw.circle(screen, (0, 0, 0), (x + 2, y + 2), button_radius, 0)
@@ -120,12 +125,13 @@ def levels_menu(screen, clock, current_level, max_level, sfx):
                 parchment_color = button_color if is_active else (140, 60, 60)
                 pygame.draw.circle(screen, parchment_color, (x, y), button_radius, 0)
 
-                # Add subtle parchment texture pattern
+                # Add subtle parchment texture pattern (scaled)
                 texture_color = (int(parchment_color[0] * 0.7), int(parchment_color[1] * 0.7), int(parchment_color[2] * 0.7))
+                texture_radius = max(1, int((button_radius - 5) * scale / 1.3))  # Adjust for scale
                 for angle in range(0, 360, 30):
                     angle_rad = math.radians(angle)
-                    dot_x = int(x + (button_radius - 5) * math.cos(angle_rad))
-                    dot_y = int(y + (button_radius - 5) * math.sin(angle_rad))
+                    dot_x = int(x + texture_radius * math.cos(angle_rad))
+                    dot_y = int(y + texture_radius * math.sin(angle_rad))
                     pygame.draw.circle(screen, texture_color, (dot_x, dot_y), 1)
             else:
                 pygame.draw.circle(screen, button_color, (x, y), button_radius, 0)
@@ -155,10 +161,7 @@ def levels_menu(screen, clock, current_level, max_level, sfx):
                 text_rect = level_text.get_rect(center=(x, y))
                 screen.blit(level_text, text_rect)
 
-            # Draw special indicators
-            if is_current:
-                # Yellow indicator for current level
-                pygame.draw.circle(screen, (255, 255, 0), (x, y), 45, 3)
+            # Remove special yellow indicator since current level now pops out
 
             if not level_info['unlocked']:
                 # Lock visual indicator for unlocked levels
@@ -169,7 +172,7 @@ def levels_menu(screen, clock, current_level, max_level, sfx):
                 screen.blit(lock_text, lock_rect)
 
         # Draw navigation hints at bottom
-        nav_text = small_font.render("Use ARROW KEYS or MOUSE to select, ENTER/SPACE to confirm", True, (200, 200, 200))
+        nav_text = small_font.render("Use WASD or ARROW KEYS or MOUSE to select, ENTER/SPACE to confirm", True, (200, 200, 200))
         nav_rect = nav_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 30))
         screen.blit(nav_text, nav_rect)
 
@@ -181,16 +184,16 @@ def levels_menu(screen, clock, current_level, max_level, sfx):
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key in [pygame.K_LEFT] and selected_level > 0:
+                if event.key in [pygame.K_LEFT, pygame.K_a] and selected_level > 1:
                     selected_level -= 1
                     sfx['menu_click'].play()
-                elif event.key in [pygame.K_RIGHT] and selected_level < total_levels - 1:
+                elif event.key in [pygame.K_RIGHT, pygame.K_d] and selected_level < total_levels:
                     selected_level += 1
                     sfx['menu_click'].play()
-                elif event.key in [pygame.K_UP] and selected_level >= levels_per_row:
+                elif event.key in [pygame.K_UP, pygame.K_w] and selected_level > levels_per_row:
                     selected_level -= levels_per_row
                     sfx['menu_click'].play()
-                elif event.key in [pygame.K_DOWN] and selected_level < total_levels - levels_per_row:
+                elif event.key in [pygame.K_DOWN, pygame.K_s] and selected_level <= total_levels - levels_per_row:
                     selected_level += levels_per_row
                     sfx['menu_click'].play()
                 elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
@@ -208,11 +211,16 @@ def levels_menu(screen, clock, current_level, max_level, sfx):
                         if level_number <= max_level:
                             row = i // levels_per_row
                             col = i % levels_per_row
-                            x = screen.get_width() // 2 + (col - 2) * 70  # Match horizontal spacing
+                            x = screen.get_width() // 2 + (col - 1.5) * 70  # Match horizontal spacing - centered for 4 columns
                             y = 110 + row * 100  # Match vertical spacing
                             # Account for floating animation in hit detection
                             adjusted_y = y + 3 * math.sin(animation_time + level_data[level_number]['animation_offset'])
-                            level_rect = pygame.Rect(x - button_radius, adjusted_y - button_radius, button_radius * 2, button_radius * 2)
+                            # Use scaled hitbox for current level
+                            is_current_level = level_number == current_level
+                            hitbox_scale = 1.3 if is_current_level else 1.0
+                            base_radius = 28
+                            hitbox_radius = int(base_radius * hitbox_scale)
+                            level_rect = pygame.Rect(x - hitbox_radius, adjusted_y - hitbox_radius, hitbox_radius * 2, hitbox_radius * 2)
                             if level_rect.collidepoint(mouse_x, mouse_y):
                                 sfx['menu_click'].play()
                                 return level_number

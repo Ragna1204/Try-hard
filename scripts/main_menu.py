@@ -42,7 +42,7 @@ class MainMenu:
     def load_game_state(self):
         """Load game state to display current progress"""
         try:
-            with open("savefile.json", "r") as save_file:
+            with open("saves/savefile.json", "r") as save_file:
                 state = json.load(save_file)
                 self.current_level = state.get("level", 1)
                 self.max_level = state.get("max_level", 1)
