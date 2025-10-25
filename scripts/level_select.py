@@ -306,9 +306,11 @@ class LevelSelect:
                     for level in range(1, self.max_level + 1):
                         row = (level - 1) // self.levels_per_row
                         col = (level - 1) % self.levels_per_row
-                        x = ((self.screen.get_width() - (self.levels_per_row * self.level_spacing)) // 2 +
-                             self.level_spacing // 2 + col * self.level_spacing - self.level_size // 2)
-                        y = (80 + row * (self.level_size + 20))
+                        # Use same calculation as render_levels
+                        start_x = ((self.screen.get_width() - (self.levels_per_row * self.level_spacing)) // 2 +
+                                  self.level_spacing // 2)
+                        x = start_x + col * self.level_spacing - self.level_size // 2
+                        y = 80 + row * (self.level_size + 20)
                         level_rect = pygame.Rect(x, y, self.level_size, self.level_size)
                         if level_rect.collidepoint(mouse_x, mouse_y):
                             self.selected_level = level

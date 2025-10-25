@@ -128,6 +128,12 @@ class Game:
         self.shared_background = SharedBackground(self.assets)
 
 
+    def get_save_path(self, filename=None):
+        """Get the correct path for save files, works for dev and executable"""
+        if filename:
+            return resource_path(f'saves/{filename}')
+        return resource_path('saves/savefile.json')
+
     def save_game_state(self):
         """Save the game state to a file."""
         state = {
@@ -138,9 +144,11 @@ class Game:
         try:
             # Use current save slot if available, otherwise default to saves/savefile.json
             if hasattr(self, 'current_save_slot'):
-                save_file = f"saves/savefile_{self.current_save_slot + 1}.json"
+                save_file = self.get_save_path(f'savefile_{self.current_save_slot + 1}.json')
             else:
-                save_file = "saves/savefile.json"
+                save_file = self.get_save_path()
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(save_file), exist_ok=True)
             with open(save_file, "w") as f:
                 json.dump(state, f)
         except Exception as e:
@@ -148,10 +156,11 @@ class Game:
 
     def load_game_state(self):
         """Load the game state from a file."""
-        if os.path.exists("saves/savefile.json"):
+        save_file = self.get_save_path()
+        if os.path.exists(save_file):
             try:
-                with open("saves/savefile.json", "r") as save_file:
-                    state = json.load(save_file)
+                with open(save_file, "r") as save_file_obj:
+                    state = json.load(save_file_obj)
                     self.level = state.get("level", 1)
                     self.max_level = state.get("max_level", 1)
                     self.death_counter = state.get("death_counter", 0)
@@ -222,28 +231,39 @@ class Game:
             else:
                 # Set the current save slot
                 self.current_save_slot = selected_save
-                
+
                 # Load the selected save file
-                save_file = f"saves/savefile_{selected_save + 1}.json"
+                save_file = self.get_save_path(f'savefile_{selected_save + 1}.json')
                 if os.path.exists(save_file):
-                    with open(save_file, "r") as f:
-                        save_data = json.load(f)
-                        self.level = save_data.get("level", 1)
-                        self.max_level = save_data.get("max_level", 1)
-                        self.death_counter = save_data.get("death_counter", 0)
+                    try:
+                        with open(save_file, "r") as f:
+                            save_data = json.load(f)
+                            self.level = save_data.get("level", 1)
+                            self.max_level = save_data.get("max_level", 1)
+                            self.death_counter = save_data.get("death_counter", 0)
+                    except (json.JSONDecodeError, FileNotFoundError):
+                        # Corrupt file, create new one with defaults
+                        self.level = 1
+                        self.max_level = 1
+                        self.death_counter = 0
                 else:
                     # New save file
                     self.level = 1
                     self.max_level = 1
                     self.death_counter = 0
-                    # Create new save file
-                    save_data = {
-                        "level": self.level,
-                        "max_level": self.max_level,
-                        "death_counter": self.death_counter
-                    }
+
+                # Create/save the save file (whether existing or new)
+                save_data = {
+                    "level": self.level,
+                    "max_level": self.max_level,
+                    "death_counter": self.death_counter
+                }
+                try:
+                    os.makedirs(os.path.dirname(save_file), exist_ok=True)
                     with open(save_file, "w") as f:
                         json.dump(save_data, f)
+                except Exception as e:
+                    print(f"Error creating save file: {e}")
                 
                 # Show level selection screen
                 selected_level = level_select(self.screen, self.clock, self.assets, self.sfx, self.max_level, self.shared_background)
